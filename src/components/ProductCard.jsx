@@ -1,4 +1,8 @@
-function ProductCard({ product, addToCart }) {
+import { useNavigate } from "react-router-dom";
+
+function ProductCard({ product }) {
+  const navigate = useNavigate();
+
   const productImages = {
     1: "/images/iphone15.png",
     2: "/images/dell-laptop.png",
@@ -9,40 +13,29 @@ function ProductCard({ product, addToCart }) {
     7: "/images/apple_watch_series_9.png",
     8: "/images/logitech_mouse.png",
     9: "/images/samsung_27inch_monitor.png",
-};
+  };
 
   return (
-    <div className="product-card">
-
-      <div className="product-image-container">
+    <div
+      className="product-card"
+      onClick={() => navigate(`/products/${product.id}`)}
+    >
+      <div className="product-card-image">
         <img
           src={productImages[product.id]}
           alt={product.name}
-          className="product-image"
         />
       </div>
 
-      <div className="product-info">
-        <p className="product-category">
-          {product.category}
-        </p>
+      <div className="product-card-info">
+        <p>{product.category}</p>
 
-        <h2>{product.name}</h2>
+        <h3>{product.name}</h3>
 
-        <div className="product-bottom">
-          <span className="product-price">
-            ₹{product.price.toLocaleString("en-IN")}
-          </span>
-
-          <button
-            className="add-cart-button"
-            onClick={() => addToCart(product)}
-          >
-            🛒 Add
-          </button>
-        </div>
+        <strong>
+          ₹{product.price.toLocaleString("en-IN")}
+        </strong>
       </div>
-
     </div>
   );
 }

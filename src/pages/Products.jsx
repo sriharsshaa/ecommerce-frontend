@@ -1,9 +1,21 @@
 import { useEffect, useState } from "react";
-import ProductCard from "../components/ProductCard";
+import { useNavigate } from "react-router-dom";
 
-function Products({ addToCart }) {
+function Products() {
   const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+
+  const productImages = {
+    1: "/images/iphone15.png",
+    2: "/images/dell-laptop.png",
+    3: "/images/sony_headphones.png",
+    4: "/images/samsung_galaxy_s24.png",
+    5: "/images/hp_pavilion.png",
+    6: "/images/jbl_bluetooth_speaker.png",
+    7: "/images/apple_watch_series_9.png",
+    8: "/images/logitech_mouse.png",
+    9: "/images/samsung_27inch_monitor.png",
+  };
 
   useEffect(() => {
     async function fetchProducts() {
@@ -17,7 +29,6 @@ function Products({ addToCart }) {
         }
 
         const data = await response.json();
-
         setProducts(data);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -27,107 +38,41 @@ function Products({ addToCart }) {
     fetchProducts();
   }, []);
 
-  const filteredProducts = products.filter((product) =>
-    product.name
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
-
   return (
     <div className="products-page">
+      <div className="products-heading">
+        <p className="section-label">SHOP</p>
+        <h1>All Products</h1>
+      </div>
 
-      {/* HERO SECTION */}
-
-      <section className="hero">
-        <div className="hero-content">
-          <p className="hero-small">
-            NEW COLLECTION
-          </p>
-
-          <h1>
-            Upgrade Your
-            <br />
-            Everyday Tech
-          </h1>
-
-          <p>
-            Discover the latest electronics
-            at amazing prices.
-          </p>
-
-          <button
-            className="hero-button"
+      <div className="products-grid">
+        {products.map((product) => (
+          <div
+            key={product.id}
+            className="product-card"
             onClick={() =>
-              document
-                .getElementById("products-section")
-                ?.scrollIntoView({
-                  behavior: "smooth",
-                })
+              navigate(`/products/${product.id}`)
             }
           >
-            Shop Now
-          </button>
-        </div>
-      </section>
+            <div className="product-card-image">
+              <img
+                src={productImages[product.id]}
+                alt={product.name}
+              />
+            </div>
 
-      {/* PRODUCTS SECTION */}
+            <div className="product-card-info">
+              <p>{product.category}</p>
 
-      <section
-        className="products-section"
-        id="products-section"
-      >
+              <h3>{product.name}</h3>
 
-        <div className="products-heading">
-          <div>
-            <p className="section-label">
-              OUR PRODUCTS
-            </p>
-
-            <h2>
-              Featured Products
-            </h2>
+              <strong>
+                ₹{product.price.toLocaleString("en-IN")}
+              </strong>
+            </div>
           </div>
-
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={search}
-              onChange={(event) =>
-                setSearch(event.target.value)
-              }
-            />
-          </div>
-        </div>
-
-        {/* PRODUCT GRID */}
-
-        <div className="products-grid">
-
-          {filteredProducts.length === 0 ? (
-
-            <p className="no-products">
-              No products found.
-            </p>
-
-          ) : (
-
-            filteredProducts.map(
-              (product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  addToCart={addToCart}
-                />
-              )
-            )
-
-          )}
-
-        </div>
-
-      </section>
-
+        ))}
+      </div>
     </div>
   );
 }

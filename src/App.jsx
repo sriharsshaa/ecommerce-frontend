@@ -1,36 +1,31 @@
 import { useEffect, useState } from "react";
+import "./App.css";
 import {
   BrowserRouter,
   Routes,
   Route,
-  Navigate,
 } from "react-router-dom";
-import "./App.css";
+import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Login from "./pages/Login";
 import Cart from "./components/Cart";
 import Orders from "./pages/Orders";
 import Navbar from "./components/Navbar";
 import Register from "./pages/Register";
+import Search from "./pages/Search";
+import ProductDetails from "./pages/ProductDetails";
 
 function App() {
-  // =========================
-  // AUTHENTICATION STATE
-  // =========================
-
   const [isLoggedIn, setIsLoggedIn] = useState(
     !!localStorage.getItem("token")
   );
 
-  // =========================
-  // CART STATE
-  // =========================
-
   const [cart, setCart] = useState([]);
 
-  // =========================
-  // GET CART
-  // =========================
+  // Product filter states
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("All");
+  const [sortOrder, setSortOrder] = useState("");
 
   async function getCart() {
     const token = localStorage.getItem("token");
@@ -68,8 +63,7 @@ function App() {
 
       const updatedCart = cartData.map((cartItem) => {
         const product = productsData.find(
-          (product) =>
-            product.id === cartItem.productId
+          (product) => product.id === cartItem.productId
         );
 
         return {
@@ -83,10 +77,6 @@ function App() {
       console.error("Get cart error:", error);
     }
   }
-
-  // =========================
-  // ADD TO CART
-  // =========================
 
   async function addToCart(product) {
     const token = localStorage.getItem("token");
@@ -118,10 +108,6 @@ function App() {
     }
   }
 
-  // =========================
-  // INCREASE QUANTITY
-  // =========================
-
   async function increaseQuantity(productId) {
     const token = localStorage.getItem("token");
 
@@ -142,16 +128,9 @@ function App() {
 
       await getCart();
     } catch (error) {
-      console.error(
-        "Increase quantity error:",
-        error
-      );
+      console.error("Increase quantity error:", error);
     }
   }
-
-  // =========================
-  // DECREASE QUANTITY
-  // =========================
 
   async function decreaseQuantity(productId) {
     const token = localStorage.getItem("token");
@@ -173,16 +152,9 @@ function App() {
 
       await getCart();
     } catch (error) {
-      console.error(
-        "Decrease quantity error:",
-        error
-      );
+      console.error("Decrease quantity error:", error);
     }
   }
-
-  // =========================
-  // REMOVE FROM CART
-  // =========================
 
   async function removeFromCart(productId) {
     const token = localStorage.getItem("token");
@@ -204,16 +176,9 @@ function App() {
 
       await getCart();
     } catch (error) {
-      console.error(
-        "Remove from cart error:",
-        error
-      );
+      console.error("Remove from cart error:", error);
     }
   }
-
-  // =========================
-  // CHECKOUT
-  // =========================
 
   async function checkout() {
     const token = localStorage.getItem("token");
@@ -256,33 +221,24 @@ function App() {
     }
   }
 
-  // =========================
-  // LOGOUT
-  // =========================
-
   function handleLogout() {
     localStorage.removeItem("token");
+    localStorage.removeItem("userName");
 
     setIsLoggedIn(false);
-
     setCart([]);
+
+    setSearch("");
+    setCategory("All");
+    setSortOrder("");
 
     alert("Logged out successfully!");
   }
 
-  // =========================
-  // CART COUNT
-  // =========================
-
   const cartCount = cart.reduce(
-    (sum, product) =>
-      sum + product.quantity,
+    (sum, product) => sum + product.quantity,
     0
   );
-
-  // =========================
-  // LOAD CART WHEN APP STARTS
-  // =========================
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -292,37 +248,53 @@ function App() {
     }
   }, []);
 
-  // =========================
-  // UI
-  // =========================
-
-  return (
+    return (
     <BrowserRouter>
 
       <Navbar
         cartCount={cartCount}
         isLoggedIn={isLoggedIn}
         onLogout={handleLogout}
+        search={search}
+        setSearch={setSearch}
+        category={category}
+        setCategory={setCategory}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
       />
 
       <Routes>
 
-        {/* DEFAULT PAGE */}
+        {/* HOME */}
         <Route
           path="/"
-          element={
-            <Navigate
-              to="/products"
-              replace
-            />
-          }
+          element={<Home />}
         />
 
-        {/* PRODUCTS */}
+        {/* SEARCH RESULTS */}
+        <Route
+          path="/search"
+          element={<Search />}
+        />
+
+        {/* ALL PRODUCTS */}
         <Route
           path="/products"
           element={
             <Products
+              addToCart={addToCart}
+              search={search}
+              category={category}
+              sortOrder={sortOrder}
+            />
+          }
+        />
+
+        {/* PRODUCT DETAILS */}
+        <Route
+          path="/products/:id"
+          element={
+            <ProductDetails
               addToCart={addToCart}
             />
           }
@@ -338,6 +310,7 @@ function App() {
           }
         />
 
+        {/* REGISTER */}
         <Route
           path="/register"
           element={<Register />}
@@ -347,36 +320,32 @@ function App() {
         <Route
           path="/cart"
           element={
-            <>
-<div className="checkout-section">
+            <div className="checkout-section">
 
-  <Cart
-    cart={cart}
-    increaseQuantity={increaseQuantity}
-    decreaseQuantity={decreaseQuantity}
-    removeFromCart={removeFromCart}
-  />
+              <Cart
+                cart={cart}
+                increaseQuantity={increaseQuantity}
+                decreaseQuantity={decreaseQuantity}
+                removeFromCart={removeFromCart}
+              />
 
-  {cart.length > 0 && (
-    <button
-      className="checkout-button"
-      onClick={checkout}
-    >
-      Proceed to Checkout →
-    </button>
-  )}
+              {cart.length > 0 && (
+                <button
+                  className="checkout-button"
+                  onClick={checkout}
+                >
+                  Proceed to Checkout →
+                </button>
+              )}
 
-</div>
-            </>
+            </div>
           }
         />
 
         {/* ORDERS */}
         <Route
           path="/orders"
-          element={
-            <Orders />
-          }
+          element={<Orders />}
         />
 
       </Routes>
