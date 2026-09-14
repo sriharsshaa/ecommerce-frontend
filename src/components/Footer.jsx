@@ -6,24 +6,51 @@ function Footer() {
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
 
+  const [notification, setNotification] = useState({
+    show: false,
+    type: "",
+    message: "",
+  });
+
   function handleSubmitFeedback(event) {
     event.preventDefault();
 
     if (rating === 0) {
-      alert("Please select a rating.");
+      setNotification({
+        show: true,
+        type: "error",
+        message: "Please select a rating before submitting.",
+      });
       return;
     }
 
     if (!feedback.trim()) {
-      alert("Please enter your feedback.");
+      setNotification({
+        show: true,
+        type: "error",
+        message: "Please enter your feedback before submitting.",
+      });
       return;
     }
 
-    alert("Thank you for your feedback!");
+    setNotification({
+      show: true,
+      type: "success",
+      message: "Thank you! Your feedback has been submitted.",
+    });
 
     setRating(0);
     setFeedback("");
-    setShowFeedback(false);
+
+    setTimeout(() => {
+      setShowFeedback(false);
+
+      setNotification({
+        show: false,
+        type: "",
+        message: "",
+      });
+    }, 1800);
   }
 
   return (
@@ -80,6 +107,7 @@ function Footer() {
             <Link to="/search?category=Laptop">Laptops</Link>
             <Link to="/search?category=Audio">Audio</Link>
             <Link to="/search?category=Wearable">Wearables</Link>
+
             <Link to="/search?category=Accessories">
               Accessories
             </Link>
@@ -103,7 +131,9 @@ function Footer() {
             <Link to="/about">About Us</Link>
             <Link to="/about">Our Story</Link>
             <Link to="/about">Careers</Link>
-            <Link to="/accessibility">Accessibility</Link>
+            <Link to="/accessibility">
+              Accessibility
+            </Link>
           </div>
 
         </div>
@@ -138,9 +168,17 @@ function Footer() {
           </p>
 
           <div className="footer-legal">
-            <Link to="/privacy">Privacy Policy</Link>
-            <Link to="/terms">Terms of Service</Link>
-            <Link to="/privacy">Privacy & Security</Link>
+            <Link to="/privacy">
+              Privacy Policy
+            </Link>
+
+            <Link to="/terms">
+              Terms of Service
+            </Link>
+
+            <Link to="/privacy">
+              Privacy & Security
+            </Link>
           </div>
 
         </div>
@@ -157,29 +195,37 @@ function Footer() {
           {/* Feedback Sidebar */}
           <div
             className="feedback-sidebar"
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event) =>
+              event.stopPropagation()
+            }
           >
 
             <div className="feedback-sidebar-header">
+
               <div>
                 <span className="feedback-label">
                   FEEDBACK
                 </span>
 
-                <h2>How was your experience?</h2>
+                <h2>
+                  How was your experience?
+                </h2>
               </div>
 
               <button
                 className="feedback-close"
-                onClick={() => setShowFeedback(false)}
+                onClick={() =>
+                  setShowFeedback(false)
+                }
               >
                 ×
               </button>
+
             </div>
 
             <p className="feedback-description">
-              Your feedback helps us improve the shopping
-              experience.
+              Your feedback helps us improve the
+              shopping experience.
             </p>
 
             <form onSubmit={handleSubmitFeedback}>
@@ -202,7 +248,9 @@ function Footer() {
                           ? "feedback-star active"
                           : "feedback-star"
                       }
-                      onClick={() => setRating(star)}
+                      onClick={() =>
+                        setRating(star)
+                      }
                       aria-label={`Rate ${star} out of 5`}
                     >
                       ★
@@ -247,6 +295,33 @@ function Footer() {
 
             </form>
 
+          </div>
+
+        </div>
+      )}
+
+      {/* Feedback Notification */}
+      {notification.show && (
+        <div
+          className={`feedback-notification ${notification.type}`}
+        >
+
+          <div className="feedback-notification-icon">
+            {notification.type === "success"
+              ? "✓"
+              : "!"}
+          </div>
+
+          <div>
+            <strong>
+              {notification.type === "success"
+                ? "Thank you"
+                : "Notice"}
+            </strong>
+
+            <p>
+              {notification.message}
+            </p>
           </div>
 
         </div>

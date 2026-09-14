@@ -1,20 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-function Login({ setIsLoggedIn }) {
+function Login({ setIsLoggedIn, showNotification }) {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleLogin(event) {
     event.preventDefault();
 
-    setError("");
     setLoading(true);
 
     try {
@@ -32,21 +30,29 @@ function Login({ setIsLoggedIn }) {
         }
       );
 
+      // Login failed
       if (!response.ok) {
-        const message = await response.text();
+        if (response.status === 401) {
+          showNotification(
+            "Invalid email or password. Please check your credentials.",
+            "error"
+          );
 
-        throw new Error(
-          message || "Invalid email or password"
+          return;
+        }
+
+        showNotification(
+          "Unable to sign in right now. Please try again.",
+          "error"
         );
+
+        return;
       }
 
-      const loginResponse =
-        await response.json();
+      // Login successful
+      const loginResponse = await response.json();
 
-      console.log(
-        "Login response:",
-        loginResponse
-      );
+      console.log("Login response:", loginResponse);
 
       localStorage.setItem(
         "token",
@@ -60,11 +66,21 @@ function Login({ setIsLoggedIn }) {
 
       setIsLoggedIn(true);
 
+      showNotification(
+        "Login successful! Welcome back.",
+        "success"
+      );
+
       navigate("/products");
 
     } catch (error) {
       console.error("Login error:", error);
-      setError(error.message);
+
+      showNotification(
+        "Unable to connect to the server. Please try again.",
+        "error"
+      );
+
     } finally {
       setLoading(false);
     }
@@ -152,12 +168,6 @@ function Login({ setIsLoggedIn }) {
 
               </div>
             </div>
-
-            {error && (
-              <div className="login-error">
-                {error}
-              </div>
-            )}
 
             <button
               type="submit"
