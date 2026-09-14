@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+
 import {
   BrowserRouter,
   Routes,
   Route,
+  useNavigate,
 } from "react-router-dom";
+
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Login from "./pages/Login";
@@ -14,8 +17,11 @@ import Navbar from "./components/Navbar";
 import Register from "./pages/Register";
 import Search from "./pages/Search";
 import ProductDetails from "./pages/ProductDetails";
+import Checkout from "./pages/Checkout";
+
 
 function App() {
+
   const [isLoggedIn, setIsLoggedIn] = useState(
     !!localStorage.getItem("token")
   );
@@ -27,7 +33,9 @@ function App() {
   const [category, setCategory] = useState("All");
   const [sortOrder, setSortOrder] = useState("");
 
+
   async function getCart() {
+
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -36,6 +44,7 @@ function App() {
     }
 
     try {
+
       const cartResponse = await fetch(
         "http://localhost:8080/api/cart",
         {
@@ -50,6 +59,7 @@ function App() {
       }
 
       const cartData = await cartResponse.json();
+
 
       const productsResponse = await fetch(
         "http://localhost:8080/api/products"
@@ -128,7 +138,10 @@ function App() {
 
       await getCart();
     } catch (error) {
-      console.error("Increase quantity error:", error);
+      console.error(
+        "Increase quantity error:",
+        error
+      );
     }
   }
 
@@ -152,7 +165,10 @@ function App() {
 
       await getCart();
     } catch (error) {
-      console.error("Decrease quantity error:", error);
+      console.error(
+        "Decrease quantity error:",
+        error
+      );
     }
   }
 
@@ -176,7 +192,10 @@ function App() {
 
       await getCart();
     } catch (error) {
-      console.error("Remove from cart error:", error);
+      console.error(
+        "Remove from cart error:",
+        error
+      );
     }
   }
 
@@ -216,7 +235,10 @@ function App() {
 
       await getCart();
     } catch (error) {
-      console.error("Checkout error:", error);
+      console.error(
+        "Checkout error:",
+        error
+      );
       alert("Checkout failed");
     }
   }
@@ -248,17 +270,96 @@ function App() {
     }
   }, []);
 
-    return (
+  return (
     <BrowserRouter>
 
-      <Navbar
+      <AppContent
+
+        cart={cart}
         cartCount={cartCount}
+
         isLoggedIn={isLoggedIn}
-        onLogout={handleLogout}
+        setIsLoggedIn={setIsLoggedIn}
+
         search={search}
         setSearch={setSearch}
+
         category={category}
         setCategory={setCategory}
+
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+
+        addToCart={addToCart}
+
+        increaseQuantity={increaseQuantity}
+        decreaseQuantity={decreaseQuantity}
+        removeFromCart={removeFromCart}
+
+        checkout={checkout}
+
+        handleLogout={handleLogout}
+
+      />
+
+    </BrowserRouter>
+  );
+}
+
+
+/* =========================================================
+   APP CONTENT
+========================================================= */
+
+function AppContent({
+
+  cart,
+  cartCount,
+
+  isLoggedIn,
+  setIsLoggedIn,
+
+  search,
+  setSearch,
+
+  category,
+  setCategory,
+
+  sortOrder,
+  setSortOrder,
+
+  addToCart,
+
+  increaseQuantity,
+  decreaseQuantity,
+  removeFromCart,
+
+  checkout,
+
+  handleLogout,
+
+}) {
+
+  const navigate = useNavigate();
+
+
+  return (
+    <>
+
+      <Navbar
+
+        cartCount={cartCount}
+
+        isLoggedIn={isLoggedIn}
+
+        onLogout={handleLogout}
+
+        search={search}
+        setSearch={setSearch}
+
+        category={category}
+        setCategory={setCategory}
+
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}
       />
@@ -329,18 +430,91 @@ function App() {
                 removeFromCart={removeFromCart}
               />
 
-              {cart.length > 0 && (
-                <button
-                  className="checkout-button"
-                  onClick={checkout}
-                >
-                  Proceed to Checkout →
-                </button>
-              )}
-
             </div>
           }
         />
+
+
+        {/* CHECKOUT */}
+
+        <Route
+          path="/checkout"
+          element={
+            <Checkout
+
+              cart={cart}
+
+              onPlaceOrder={async (paymentMethod) => {
+
+                try {
+
+                  const token =
+                    localStorage.getItem("token");
+
+
+                  const response = await fetch(
+                    `http://localhost:8080/api/orders?paymentMethod=${encodeURIComponent(
+                      paymentMethod
+                    )}`,
+                    {
+                      method: "POST",
+
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    }
+                  );
+
+
+                  if (!response.ok) {
+
+                    const errorText =
+                      await response.text();
+
+                    console.error(
+                      "Backend error:",
+                      errorText
+                    );
+
+                    throw new Error(
+                      errorText ||
+                      "Failed to place order"
+                    );
+                  }
+
+
+                  const order =
+                    await response.json();
+
+
+                  console.log(
+                    "Order placed:",
+                    order
+                  );
+
+
+                  window.location.href =
+                    "/orders";
+
+                } catch (error) {
+
+                  console.error(
+                    "Error placing order:",
+                    error
+                  );
+
+                  alert(
+                    "Failed to place order"
+                  );
+
+                }
+
+              }}
+
+            />
+          }
+        />
+
 
         {/* ORDERS */}
         <Route
@@ -350,7 +524,7 @@ function App() {
 
       </Routes>
 
-    </BrowserRouter>
+    </>
   );
 }
 
