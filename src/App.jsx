@@ -18,7 +18,14 @@ import Register from "./pages/Register";
 import Search from "./pages/Search";
 import ProductDetails from "./pages/ProductDetails";
 import Checkout from "./pages/Checkout";
-
+import Footer from "./components/Footer";
+import About from "./pages/About";
+import Contact from "./pages/Contact"; 
+import Help from "./pages/Help"; 
+import Returns from "./pages/Returns"; 
+import Privacy from "./pages/Privacy"; 
+import Terms from "./pages/Terms";
+import Accessibility from "./pages/Accessibility";
 
 function App() {
 
@@ -302,6 +309,7 @@ function App() {
 
       />
 
+        <Footer />
     </BrowserRouter>
   );
 }
@@ -521,6 +529,14 @@ function AppContent({
           path="/orders"
           element={<Orders />}
         />
+
+<Route path="/about" element={<About />} />
+<Route path="/contact" element={<Contact />} />
+<Route path="/help" element={<Help />} />
+<Route path="/returns" element={<Returns />} />
+<Route path="/privacy" element={<Privacy />} />
+<Route path="/terms" element={<Terms />} />
+<Route path="/accessibility" element={<Accessibility />} />
 
       </Routes>
 
