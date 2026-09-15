@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-function ProductDetails({ addToCart }) {
+function ProductDetails({ addToCart, showNotification }) {
   const { id } = useParams();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Wishlist state
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
   const productImages = {
     1: "/images/iphone15.png",
@@ -18,6 +21,10 @@ function ProductDetails({ addToCart }) {
     8: "/images/logitech_mouse.png",
     9: "/images/samsung_27inch_monitor.png",
   };
+
+  // =====================================================
+  // FETCH PRODUCT
+  // =====================================================
 
   useEffect(() => {
     async function fetchProduct() {
@@ -47,9 +54,141 @@ function ProductDetails({ addToCart }) {
     fetchProduct();
   }, [id]);
 
+  // =====================================================
+  // CHECK WISHLIST
+  // =====================================================
+
+  useEffect(() => {
+    async function checkWishlist() {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setIsWishlisted(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          "http://localhost:8080/api/wishlist",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+
+        const exists = data.some(
+          (item) =>
+            Number(item.productId) === Number(id)
+        );
+
+        setIsWishlisted(exists);
+      } catch (error) {
+        console.error(
+          "Wishlist check error:",
+          error
+        );
+      }
+    }
+
+    checkWishlist();
+  }, [id]);
+
+  // =====================================================
+  // ADD / REMOVE WISHLIST
+  // =====================================================
+
+  async function handleWishlist() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login to add products to wishlist.");
+      return;
+    }
+
+    try {
+      // ==========================================
+      // REMOVE FROM WISHLIST
+      // ==========================================
+
+      if (isWishlisted) {
+        const response = await fetch(
+          `http://localhost:8080/api/wishlist/${product.id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            "Failed to remove from wishlist"
+          );
+        }
+
+        setIsWishlisted(false);
+
+        showNotification(
+          "Product removed from wishlist",
+          "success"
+        );
+
+        return;
+      }
+
+      // ==========================================
+      // ADD TO WISHLIST
+      // ==========================================
+
+      const response = await fetch(
+        `http://localhost:8080/api/wishlist/${product.id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to add to wishlist"
+        );
+      }
+
+      setIsWishlisted(true);
+
+      showNotification(
+        "Product added to wishlist ❤️",
+        "success"
+      );
+    } catch (error) {
+      console.error(
+        "Wishlist error:",
+        error
+      );
+    }
+  }
+
+  // =====================================================
+  // LOADING
+  // =====================================================
+
   if (loading) {
     return <p>Loading...</p>;
   }
+
+  // =====================================================
+  // PRODUCT NOT FOUND
+  // =====================================================
 
   if (!product) {
     return <p>Product not found</p>;
@@ -94,12 +233,34 @@ function ProductDetails({ addToCart }) {
             experience.
           </p>
 
-          <button
-            className="product-details-cart-button"
-            onClick={() => addToCart(product)}
-          >
-            Add to Cart
-          </button>
+          {/* =================================================
+              CART + WISHLIST BUTTONS
+          ================================================= */}
+
+          <div className="product-details-actions">
+
+            <button
+              className="product-details-cart-button"
+              onClick={() => addToCart(product)}
+            >
+              Add to Cart
+            </button>
+
+            <button
+              className={`product-details-wishlist-button ${
+                isWishlisted ? "wishlisted" : ""
+              }`}
+              onClick={handleWishlist}
+              aria-label={
+                isWishlisted
+                  ? "Remove from wishlist"
+                  : "Add to wishlist"
+              }
+            >
+              {isWishlisted ? "♥" : "♡"}
+            </button>
+
+          </div>
 
         </div>
       </div>

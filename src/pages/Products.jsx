@@ -1,21 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import ProductCard from "../components/ProductCard";
 
-function Products() {
+function Products({ addToWishlist }) {
   const [products, setProducts] = useState([]);
-  const navigate = useNavigate();
-
-  const productImages = {
-    1: "/images/iphone15.png",
-    2: "/images/dell-laptop.png",
-    3: "/images/sony_headphones.png",
-    4: "/images/samsung_galaxy_s24.png",
-    5: "/images/hp_pavilion.png",
-    6: "/images/jbl_bluetooth_speaker.png",
-    7: "/images/apple_watch_series_9.png",
-    8: "/images/logitech_mouse.png",
-    9: "/images/samsung_27inch_monitor.png",
-  };
 
   useEffect(() => {
     async function fetchProducts() {
@@ -47,30 +34,11 @@ function Products() {
 
       <div className="products-grid">
         {products.map((product) => (
-          <div
+          <ProductCard
             key={product.id}
-            className="product-card"
-            onClick={() =>
-              navigate(`/products/${product.id}`)
-            }
-          >
-            <div className="product-card-image">
-              <img
-                src={productImages[product.id]}
-                alt={product.name}
-              />
-            </div>
-
-            <div className="product-card-info">
-              <p>{product.category}</p>
-
-              <h3>{product.name}</h3>
-
-              <strong>
-                ₹{product.price.toLocaleString("en-IN")}
-              </strong>
-            </div>
-          </div>
+            product={product}
+            addToWishlist={addToWishlist}
+          />
         ))}
       </div>
     </div>

@@ -128,6 +128,9 @@ function Navbar({
           Cart ({cartCount})
         </Link>
 
+        <Link to="/wishlist">♡ Wishlist</Link>
+
+
         {/* ORDERS */}
         <Link to="/orders">
           Orders

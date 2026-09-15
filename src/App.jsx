@@ -28,6 +28,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Accessibility from "./pages/Accessibility";
 import Notification from "./components/Notification";
+import Wishlist from "./pages/Wishlist";
 
 
 function App() {
@@ -238,6 +239,72 @@ function App() {
 
       showNotification(
         "Failed to add product to cart.",
+        "error"
+      );
+    }
+  }
+
+
+  // =========================================================
+  // ADD TO WISHLIST
+  // =========================================================
+
+  async function addToWishlist(productId) {
+
+    const token =
+      localStorage.getItem("token");
+
+
+    if (!token) {
+
+      showNotification(
+        "Please login to add products to wishlist.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    try {
+
+      const response =
+        await fetch(
+          `http://localhost:8080/api/wishlist/${productId}`,
+          {
+            method: "POST",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          "Failed to add to wishlist"
+        );
+      }
+
+
+      showNotification(
+        "Product added to wishlist ❤️",
+        "success"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Wishlist error:",
+        error
+      );
+
+
+      showNotification(
+        "Failed to add product to wishlist.",
         "error"
       );
     }
@@ -613,6 +680,8 @@ function App() {
 
           addToCart={addToCart}
 
+          addToWishlist={addToWishlist}
+
 
           increaseQuantity={
             increaseQuantity
@@ -636,10 +705,6 @@ function App() {
             handleLogout
           }
 
-
-          // IMPORTANT:
-          // Pass notification function
-          // to AppContent
 
           showNotification={
             showNotification
@@ -676,6 +741,7 @@ function AppContent({
   setSortOrder,
 
   addToCart,
+  addToWishlist,
 
   increaseQuantity,
   decreaseQuantity,
@@ -684,9 +750,6 @@ function AppContent({
   checkout,
 
   handleLogout,
-
-  // IMPORTANT:
-  // Receive notification function
 
   showNotification,
 
@@ -776,6 +839,7 @@ function AppContent({
           element={
             <Products
               addToCart={addToCart}
+              addToWishlist={addToWishlist}
               search={search}
               category={category}
               sortOrder={sortOrder}
@@ -793,6 +857,7 @@ function AppContent({
           element={
             <ProductDetails
               addToCart={addToCart}
+              showNotification={showNotification}
             />
           }
         />
@@ -988,6 +1053,18 @@ function AppContent({
 
 
         {/* ===================================================
+            WISHLIST
+        =================================================== */}
+
+        <Route
+          path="/wishlist"
+          element={
+            <Wishlist />
+          }
+        />
+
+
+        {/* ===================================================
             ABOUT
         =================================================== */}
 
@@ -1075,12 +1152,6 @@ function AppContent({
 
       {/* =====================================================
           FOOTER
-
-          Footer is hidden on:
-          /login
-          /register
-
-          Footer appears on all other pages.
       ===================================================== */}
 
       {!hideFooter && <Footer />}
