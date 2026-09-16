@@ -10,6 +10,15 @@ function ProductDetails({ addToCart, showNotification }) {
   // Wishlist state
   const [isWishlisted, setIsWishlisted] = useState(false);
 
+  // Review state
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+
   const productImages = {
     1: "/images/iphone15.png",
     2: "/images/dell-laptop.png",
@@ -101,6 +110,54 @@ function ProductDetails({ addToCart, showNotification }) {
   }, [id]);
 
   // =====================================================
+  // FETCH REVIEWS
+  // =====================================================
+
+  useEffect(() => {
+    async function fetchReviews() {
+      console.log(
+        "Fetching reviews for product:",
+        id
+      );
+
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/reviews/${id}`
+        );
+
+        console.log(
+          "Review response:",
+          response
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            "Failed to fetch reviews"
+          );
+        }
+
+        const data = await response.json();
+
+        console.log(
+          "Reviews received:",
+          data
+        );
+
+        setReviews(data);
+      } catch (error) {
+        console.error(
+          "Reviews fetch error:",
+          error
+        );
+      } finally {
+        setReviewsLoading(false);
+      }
+    }
+
+    fetchReviews();
+  }, [id]);
+
+  // =====================================================
   // ADD / REMOVE WISHLIST
   // =====================================================
 
@@ -108,7 +165,9 @@ function ProductDetails({ addToCart, showNotification }) {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      alert("Please login to add products to wishlist.");
+      alert(
+        "Please login to add products to wishlist."
+      );
       return;
     }
 
@@ -179,6 +238,87 @@ function ProductDetails({ addToCart, showNotification }) {
   }
 
   // =====================================================
+  // SUBMIT REVIEW
+  // =====================================================
+
+  async function handleSubmitReview() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login to write a review.");
+      return;
+    }
+
+    if (selectedRating === 0) {
+      showNotification(
+        "Please select a rating",
+        "error"
+      );
+      return;
+    }
+
+    if (!reviewComment.trim()) {
+      showNotification(
+        "Please write a review",
+        "error"
+      );
+      return;
+    }
+
+    setSubmittingReview(true);
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/reviews/${product.id}?rating=${selectedRating}&comment=${encodeURIComponent(
+          reviewComment
+        )}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to submit review"
+        );
+      }
+
+      const newReview = await response.json();
+
+      // Add the new review to the existing list
+      setReviews((currentReviews) => [
+        ...currentReviews,
+        newReview,
+      ]);
+
+      // Reset form
+      setSelectedRating(0);
+      setReviewComment("");
+      setShowReviewForm(false);
+
+      showNotification(
+        "Review submitted successfully",
+        "success"
+      );
+    } catch (error) {
+      console.error(
+        "Submit review error:",
+        error
+      );
+
+      showNotification(
+        "Failed to submit review",
+        "error"
+      );
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
+
+  // =====================================================
   // LOADING
   // =====================================================
 
@@ -193,6 +333,21 @@ function ProductDetails({ addToCart, showNotification }) {
   if (!product) {
     return <p>Product not found</p>;
   }
+
+  // =====================================================
+  // REVIEW CALCULATIONS
+  // =====================================================
+
+  const averageRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce(
+            (sum, review) =>
+              sum + Number(review.rating),
+            0
+          ) / reviews.length
+        ).toFixed(1)
+      : "0.0";
 
   return (
     <div className="product-details-page">
@@ -234,6 +389,37 @@ function ProductDetails({ addToCart, showNotification }) {
           </p>
 
           {/* =================================================
+              RATING SUMMARY
+          ================================================= */}
+
+          <div className="product-rating-summary">
+
+            <span className="rating-stars">
+              {"★".repeat(
+                Math.round(Number(averageRating))
+              )}
+              {"☆".repeat(
+                5 -
+                  Math.round(
+                    Number(averageRating)
+                  )
+              )}
+            </span>
+
+            <span className="rating-number">
+              {averageRating}
+            </span>
+
+            <span className="rating-count">
+              ({reviews.length}{" "}
+              {reviews.length === 1
+                ? "review"
+                : "reviews"})
+            </span>
+
+          </div>
+
+          {/* =================================================
               CART + WISHLIST BUTTONS
           ================================================= */}
 
@@ -248,7 +434,9 @@ function ProductDetails({ addToCart, showNotification }) {
 
             <button
               className={`product-details-wishlist-button ${
-                isWishlisted ? "wishlisted" : ""
+                isWishlisted
+                  ? "wishlisted"
+                  : ""
               }`}
               onClick={handleWishlist}
               aria-label={
@@ -284,35 +472,45 @@ function ProductDetails({ addToCart, showNotification }) {
               {product.brand && (
                 <div className="specification-row">
                   <span>Brand</span>
-                  <strong>{product.brand}</strong>
+                  <strong>
+                    {product.brand}
+                  </strong>
                 </div>
               )}
 
               {product.modelName && (
                 <div className="specification-row">
                   <span>Model Name</span>
-                  <strong>{product.modelName}</strong>
+                  <strong>
+                    {product.modelName}
+                  </strong>
                 </div>
               )}
 
               {product.screenSize && (
                 <div className="specification-row">
                   <span>Screen Size</span>
-                  <strong>{product.screenSize}</strong>
+                  <strong>
+                    {product.screenSize}
+                  </strong>
                 </div>
               )}
 
               {product.hardDiskSize && (
                 <div className="specification-row">
                   <span>Hard Disk Size</span>
-                  <strong>{product.hardDiskSize}</strong>
+                  <strong>
+                    {product.hardDiskSize}
+                  </strong>
                 </div>
               )}
 
               {product.cpuModel && (
                 <div className="specification-row">
                   <span>CPU Model</span>
-                  <strong>{product.cpuModel}</strong>
+                  <strong>
+                    {product.cpuModel}
+                  </strong>
                 </div>
               )}
 
@@ -336,35 +534,45 @@ function ProductDetails({ addToCart, showNotification }) {
               {product.brand && (
                 <div className="specification-row">
                   <span>Brand</span>
-                  <strong>{product.brand}</strong>
+                  <strong>
+                    {product.brand}
+                  </strong>
                 </div>
               )}
 
               {product.color && (
                 <div className="specification-row">
                   <span>Color</span>
-                  <strong>{product.color}</strong>
+                  <strong>
+                    {product.color}
+                  </strong>
                 </div>
               )}
 
               {product.formFactor && (
                 <div className="specification-row">
                   <span>Form Factor</span>
-                  <strong>{product.formFactor}</strong>
+                  <strong>
+                    {product.formFactor}
+                  </strong>
                 </div>
               )}
 
               {product.noiseControl && (
                 <div className="specification-row">
                   <span>Noise Control</span>
-                  <strong>{product.noiseControl}</strong>
+                  <strong>
+                    {product.noiseControl}
+                  </strong>
                 </div>
               )}
 
               {product.earPlacement && (
                 <div className="specification-row">
                   <span>Ear Placement</span>
-                  <strong>{product.earPlacement}</strong>
+                  <strong>
+                    {product.earPlacement}
+                  </strong>
                 </div>
               )}
             </>
@@ -379,35 +587,45 @@ function ProductDetails({ addToCart, showNotification }) {
               {product.brand && (
                 <div className="specification-row">
                   <span>Brand</span>
-                  <strong>{product.brand}</strong>
+                  <strong>
+                    {product.brand}
+                  </strong>
                 </div>
               )}
 
               {product.storage && (
                 <div className="specification-row">
                   <span>Storage</span>
-                  <strong>{product.storage}</strong>
+                  <strong>
+                    {product.storage}
+                  </strong>
                 </div>
               )}
 
               {product.ram && (
                 <div className="specification-row">
                   <span>RAM</span>
-                  <strong>{product.ram}</strong>
+                  <strong>
+                    {product.ram}
+                  </strong>
                 </div>
               )}
 
               {product.screenSize && (
                 <div className="specification-row">
                   <span>Screen Size</span>
-                  <strong>{product.screenSize}</strong>
+                  <strong>
+                    {product.screenSize}
+                  </strong>
                 </div>
               )}
 
               {product.operatingSystem && (
                 <div className="specification-row">
                   <span>Operating System</span>
-                  <strong>{product.operatingSystem}</strong>
+                  <strong>
+                    {product.operatingSystem}
+                  </strong>
                 </div>
               )}
             </>
@@ -422,49 +640,63 @@ function ProductDetails({ addToCart, showNotification }) {
               {product.brand && (
                 <div className="specification-row">
                   <span>Brand</span>
-                  <strong>{product.brand}</strong>
+                  <strong>
+                    {product.brand}
+                  </strong>
                 </div>
               )}
 
               {product.modelName && (
                 <div className="specification-row">
                   <span>Model Name</span>
-                  <strong>{product.modelName}</strong>
+                  <strong>
+                    {product.modelName}
+                  </strong>
                 </div>
               )}
 
               {product.screenSize && (
                 <div className="specification-row">
                   <span>Screen Size</span>
-                  <strong>{product.screenSize}</strong>
+                  <strong>
+                    {product.screenSize}
+                  </strong>
                 </div>
               )}
 
               {product.storage && (
                 <div className="specification-row">
                   <span>Storage</span>
-                  <strong>{product.storage}</strong>
+                  <strong>
+                    {product.storage}
+                  </strong>
                 </div>
               )}
 
               {product.operatingSystem && (
                 <div className="specification-row">
                   <span>Operating System</span>
-                  <strong>{product.operatingSystem}</strong>
+                  <strong>
+                    {product.operatingSystem}
+                  </strong>
                 </div>
               )}
 
               {product.color && (
                 <div className="specification-row">
                   <span>Color</span>
-                  <strong>{product.color}</strong>
+                  <strong>
+                    {product.color}
+                  </strong>
                 </div>
               )}
 
               {product.connectivity && (
                 <div className="specification-row">
                   <span>Connectivity</span>
-                  <strong>{product.connectivity}</strong>
+                  <strong>
+                    {product.connectivity}
+                  </strong>
                 </div>
               )}
             </>
@@ -479,35 +711,45 @@ function ProductDetails({ addToCart, showNotification }) {
               {product.brand && (
                 <div className="specification-row">
                   <span>Brand</span>
-                  <strong>{product.brand}</strong>
+                  <strong>
+                    {product.brand}
+                  </strong>
                 </div>
               )}
 
               {product.modelName && (
                 <div className="specification-row">
                   <span>Model Name</span>
-                  <strong>{product.modelName}</strong>
+                  <strong>
+                    {product.modelName}
+                  </strong>
                 </div>
               )}
 
               {product.color && (
                 <div className="specification-row">
                   <span>Color</span>
-                  <strong>{product.color}</strong>
+                  <strong>
+                    {product.color}
+                  </strong>
                 </div>
               )}
 
               {product.connectionType && (
                 <div className="specification-row">
                   <span>Connection Type</span>
-                  <strong>{product.connectionType}</strong>
+                  <strong>
+                    {product.connectionType}
+                  </strong>
                 </div>
               )}
 
               {product.compatibility && (
                 <div className="specification-row">
                   <span>Compatibility</span>
-                  <strong>{product.compatibility}</strong>
+                  <strong>
+                    {product.compatibility}
+                  </strong>
                 </div>
               )}
             </>
@@ -522,42 +764,54 @@ function ProductDetails({ addToCart, showNotification }) {
               {product.brand && (
                 <div className="specification-row">
                   <span>Brand</span>
-                  <strong>{product.brand}</strong>
+                  <strong>
+                    {product.brand}
+                  </strong>
                 </div>
               )}
 
               {product.modelName && (
                 <div className="specification-row">
                   <span>Model Name</span>
-                  <strong>{product.modelName}</strong>
+                  <strong>
+                    {product.modelName}
+                  </strong>
                 </div>
               )}
 
               {product.screenSize && (
                 <div className="specification-row">
                   <span>Screen Size</span>
-                  <strong>{product.screenSize}</strong>
+                  <strong>
+                    {product.screenSize}
+                  </strong>
                 </div>
               )}
 
               {product.resolution && (
                 <div className="specification-row">
                   <span>Resolution</span>
-                  <strong>{product.resolution}</strong>
+                  <strong>
+                    {product.resolution}
+                  </strong>
                 </div>
               )}
 
               {product.refreshRate && (
                 <div className="specification-row">
                   <span>Refresh Rate</span>
-                  <strong>{product.refreshRate}</strong>
+                  <strong>
+                    {product.refreshRate}
+                  </strong>
                 </div>
               )}
 
               {product.panelType && (
                 <div className="specification-row">
                   <span>Panel Type</span>
-                  <strong>{product.panelType}</strong>
+                  <strong>
+                    {product.panelType}
+                  </strong>
                 </div>
               )}
             </>
@@ -759,7 +1013,6 @@ function ProductDetails({ addToCart, showNotification }) {
         )}
 
         {/* SAMSUNG 27-INCH MONITOR */}
-
         {product.id === 9 && (
           <ul>
             <li>
@@ -780,6 +1033,192 @@ function ProductDetails({ addToCart, showNotification }) {
             </li>
           </ul>
         )}
+      </div>
+
+      {/* =====================================================
+          CUSTOMER REVIEWS
+      ===================================================== */}
+
+      <div className="product-reviews">
+        <div className="reviews-header">
+          <div>
+            <h2>Customer Reviews</h2>
+            {reviews.length > 0 && (
+              <div className="reviews-summary">
+                <span className="reviews-average">
+                  {averageRating}
+                </span>
+                <span className="reviews-stars">
+                  {"★".repeat(
+                    Math.round(
+                      Number(averageRating)
+                    )
+                  )}
+                  {"☆".repeat(
+                    5 -
+                      Math.round(
+                        Number(averageRating)
+                      )
+                  )}
+                </span>
+
+                <span className="reviews-count">
+                  {reviews.length}{" "}
+                  {reviews.length === 1
+                    ? "review"
+                    : "reviews"}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <button
+            className="write-review-button"
+            onClick={() =>
+              setShowReviewForm(
+                !showReviewForm
+              )
+            }
+          >
+            {showReviewForm
+              ? "Cancel"
+              : "Write a Review"}
+          </button>
+        </div>
+
+        {/* =================================================
+            REVIEW FORM
+        ================================================= */}
+
+        {showReviewForm && (
+          <div className="review-form">
+            <h3>Write a Review</h3>
+            <div className="review-rating-input">
+              <p>Your Rating:</p>
+
+              <div className="rating-selector">
+
+                {[1, 2, 3, 4, 5].map(
+                  (star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      className={
+                        star <= selectedRating
+                          ? "rating-star selected"
+                          : "rating-star"
+                      }
+                      onClick={() =>
+                        setSelectedRating(
+                          star
+                        )
+                      }
+                    >
+                      {star <= selectedRating
+                        ? "★"
+                        : "☆"}
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+            <div className="review-comment">
+
+              <label htmlFor="reviewComment">
+                Your Review
+              </label>
+
+              <textarea
+                id="reviewComment"
+                value={reviewComment}
+                onChange={(event) =>
+                  setReviewComment(
+                    event.target.value
+                  )
+                }
+                placeholder="Share your experience with this product..."
+                rows="5"
+              />
+            </div>
+
+            <button
+              className="submit-review-button"
+              onClick={handleSubmitReview}
+              disabled={submittingReview}
+            >
+              {submittingReview
+                ? "Submitting..."
+                : "Submit Review"}
+            </button>
+
+          </div>
+        )}
+
+        {/* =================================================
+            REVIEW LIST
+        ================================================= */}
+
+        <div className="reviews-list">
+
+          {reviewsLoading ? (
+            <p>Loading reviews...</p>
+          ) : reviews.length === 0 ? (
+            <div className="no-reviews">
+              <p>
+                No reviews yet.
+              </p>
+
+              <p>
+                Be the first to review this product!
+              </p>
+            </div>
+          ) : (
+            reviews.map((review) => (
+              <div
+                className="review-card"
+                key={review.id}
+              >
+
+                <div className="review-card-header">
+
+                  <div className="review-rating">
+
+                    {"★".repeat(
+                      Number(review.rating)
+                    )}
+
+                    {"☆".repeat(
+                      5 -
+                        Number(review.rating)
+                    )}
+
+                  </div>
+
+                  <span className="review-date">
+                    {review.createdAt
+                    ? new Date(review.createdAt).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : ""}
+                  </span>
+
+                </div>
+
+                <p className="review-comment-text">
+                  {review.comment}
+                </p>
+
+                <p className="review-user">
+                  — Customer
+                </p>
+
+              </div>
+            ))
+          )}
+
+        </div>
 
       </div>
 

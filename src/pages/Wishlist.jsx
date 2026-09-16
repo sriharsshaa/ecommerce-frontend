@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const productImages = {
   1: "/images/iphone15.png",
@@ -13,6 +14,8 @@ const productImages = {
 };
 
 function Wishlist() {
+  const navigate = useNavigate();
+
   const [wishlist, setWishlist] = useState([]);
   const [products, setProducts] = useState([]);
 
@@ -47,19 +50,14 @@ function Wishlist() {
       );
 
       if (!response.ok) {
-        throw new Error(
-          "Failed to fetch wishlist"
-        );
+        throw new Error("Failed to fetch wishlist");
       }
 
       const data = await response.json();
 
       setWishlist(data);
     } catch (error) {
-      console.error(
-        "Fetch Wishlist error:",
-        error
-      );
+      console.error("Fetch Wishlist error:", error);
     }
   }
 
@@ -74,19 +72,14 @@ function Wishlist() {
       );
 
       if (!response.ok) {
-        throw new Error(
-          "Failed to fetch products"
-        );
+        throw new Error("Failed to fetch products");
       }
 
       const data = await response.json();
 
       setProducts(data);
     } catch (error) {
-      console.error(
-        "Fetch products error:",
-        error
-      );
+      console.error("Fetch products error:", error);
     }
   }
 
@@ -113,24 +106,18 @@ function Wishlist() {
       );
 
       if (!response.ok) {
-        throw new Error(
-          "Failed to remove from wishlist"
-        );
+        throw new Error("Failed to remove from wishlist");
       }
 
       // Remove immediately from the screen
       setWishlist((currentWishlist) =>
         currentWishlist.filter(
           (item) =>
-            Number(item.productId) !==
-            Number(productId)
+            Number(item.productId) !== Number(productId)
         )
       );
     } catch (error) {
-      console.error(
-        "Remove Wishlist error:",
-        error
-      );
+      console.error("Remove Wishlist error:", error);
     }
   }
 
@@ -166,6 +153,9 @@ function Wishlist() {
               <div
                 className="wishlist-card"
                 key={item.id}
+                onClick={() =>
+                  navigate(`/products/${product.id}`)
+                }
               >
 
                 <img
@@ -181,9 +171,10 @@ function Wishlist() {
                 </p>
 
                 <button
-                  onClick={() =>
-                    removeFromWishlist(product.id)
-                  }
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    removeFromWishlist(product.id);
+                  }}
                 >
                   Remove
                 </button>
