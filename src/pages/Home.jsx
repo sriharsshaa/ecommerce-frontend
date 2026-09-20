@@ -5,18 +5,6 @@ function Home() {
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
 
-  const productImages = {
-    1: "/images/iphone15.png",
-    2: "/images/dell-laptop.png",
-    3: "/images/sony_headphones.png",
-    4: "/images/samsung_galaxy_s24.png",
-    5: "/images/hp_pavilion.png",
-    6: "/images/jbl_bluetooth_speaker.png",
-    7: "/images/apple_watch_series_9.png",
-    8: "/images/logitech_mouse.png",
-    9: "/images/samsung_27inch_monitor.png",
-  };
-
   useEffect(() => {
     async function fetchProducts() {
       try {
@@ -29,9 +17,13 @@ function Home() {
         }
 
         const data = await response.json();
+
         setProducts(data);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error(
+          "Error fetching products:",
+          error
+        );
       }
     }
 
@@ -44,7 +36,9 @@ function Home() {
       {/* =========================
           HERO SECTION
       ========================== */}
+
       <section className="home-hero">
+
         <div className="home-hero-content">
 
           <p className="hero-small">
@@ -63,18 +57,22 @@ function Home() {
 
           <button
             className="hero-button"
-            onClick={() => navigate("/products")}
+            onClick={() =>
+              navigate("/products")
+            }
           >
             Shop Now →
           </button>
 
         </div>
+
       </section>
 
 
       {/* =========================
           CATEGORIES SECTION
       ========================== */}
+
       <section className="home-categories">
 
         <div className="home-section-heading">
@@ -93,9 +91,12 @@ function Home() {
         <div className="category-grid">
 
           {/* MOBILE */}
+
           <button
             onClick={() =>
-              navigate("/search?category=Mobile")
+              navigate(
+                "/search?category=Mobile"
+              )
             }
           >
             <span className="category-icon">
@@ -109,9 +110,12 @@ function Home() {
 
 
           {/* LAPTOP */}
+
           <button
             onClick={() =>
-              navigate("/search?category=Laptop")
+              navigate(
+                "/search?category=Laptop"
+              )
             }
           >
             <span className="category-icon">
@@ -125,9 +129,12 @@ function Home() {
 
 
           {/* AUDIO */}
+
           <button
             onClick={() =>
-              navigate("/search?category=Audio")
+              navigate(
+                "/search?category=Audio"
+              )
             }
           >
             <span className="category-icon">
@@ -141,9 +148,12 @@ function Home() {
 
 
           {/* WEARABLES */}
+
           <button
             onClick={() =>
-              navigate("/search?category=Wearable")
+              navigate(
+                "/search?category=Wearable"
+              )
             }
           >
             <span className="category-icon">
@@ -157,9 +167,12 @@ function Home() {
 
 
           {/* ACCESSORIES */}
+
           <button
             onClick={() =>
-              navigate("/search?category=Accessories")
+              navigate(
+                "/search?category=Accessories"
+              )
             }
           >
             <span className="category-icon">
@@ -173,9 +186,12 @@ function Home() {
 
 
           {/* MONITORS */}
+
           <button
             onClick={() =>
-              navigate("/search?category=Monitor")
+              navigate(
+                "/search?category=Monitor"
+              )
             }
           >
             <span className="category-icon">
@@ -195,6 +211,7 @@ function Home() {
       {/* =========================
           FEATURED PRODUCTS
       ========================== */}
+
       <section className="home-featured">
 
         <div className="home-section-heading">
@@ -212,47 +229,75 @@ function Home() {
 
         <div className="home-product-grid">
 
-          {products.map((product) => (
+          {products.map((product) => {
 
-            <div
-              key={product.id}
-              className="home-product-card"
-              onClick={() =>
-                navigate(`/products/${product.id}`)
-              }
-            >
+            // Dynamic image from backend
+            const imageUrl =
+              product.imageUrl
+                ? `http://localhost:8080${product.imageUrl}`
+                : null;
 
-              {/* PRODUCT IMAGE */}
-              <div className="home-product-image">
+            return (
 
-                <img
-                  src={productImages[product.id]}
-                  alt={product.name}
-                />
+              <div
+                key={product.id}
+                className="home-product-card"
+                onClick={() =>
+                  navigate(
+                    `/products/${product.id}`
+                  )
+                }
+              >
+
+                {/* PRODUCT IMAGE */}
+
+                <div className="home-product-image">
+
+                  {imageUrl ? (
+
+                    <img
+                      src={imageUrl}
+                      alt={product.name}
+                    />
+
+                  ) : (
+
+                    <span>
+                      No Image
+                    </span>
+
+                  )}
+
+                </div>
+
+
+                {/* PRODUCT DETAILS */}
+
+                <div className="home-product-info">
+
+                  <p>
+                    {product.category}
+                  </p>
+
+                  <h3>
+                    {product.name}
+                  </h3>
+
+                  <strong>
+                    ₹
+                    {Number(
+                      product.price
+                    ).toLocaleString(
+                      "en-IN"
+                    )}
+                  </strong>
+
+                </div>
 
               </div>
 
-
-              {/* PRODUCT DETAILS */}
-              <div className="home-product-info">
-
-                <p>
-                  {product.category}
-                </p>
-
-                <h3>
-                  {product.name}
-                </h3>
-
-                <strong>
-                  ₹{product.price.toLocaleString("en-IN")}
-                </strong>
-
-              </div>
-
-            </div>
-
-          ))}
+            );
+          })}
 
         </div>
 

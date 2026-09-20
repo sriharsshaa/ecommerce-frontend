@@ -13,6 +13,36 @@ function Navbar({
   const [searchText, setSearchText] = useState("");
 
   const userName = localStorage.getItem("userName");
+  const token = localStorage.getItem("token");
+
+  // -----------------------------------------
+  // GET ROLE FROM JWT
+  // -----------------------------------------
+
+  let userRole = "";
+
+  if (token) {
+    try {
+      const tokenParts = token.split(".");
+
+      const payload = JSON.parse(
+        atob(tokenParts[1])
+      );
+
+      userRole = payload.role || "";
+    } catch (error) {
+      console.error(
+        "Could not read user role:",
+        error
+      );
+    }
+  }
+
+  const isAdmin = userRole === "ADMIN";
+
+  // -----------------------------------------
+  // SEARCH
+  // -----------------------------------------
 
   function handleSearch(event) {
     event.preventDefault();
@@ -24,14 +54,26 @@ function Navbar({
       return;
     }
 
-    navigate(`/search?q=${encodeURIComponent(value)}`);
+    navigate(
+      `/search?q=${encodeURIComponent(value)}`
+    );
   }
+
+  // -----------------------------------------
+  // LOGOUT
+  // -----------------------------------------
 
   function handleLogout() {
     onLogout();
+
     setShowDropdown(false);
+
     navigate("/login");
   }
+
+  // -----------------------------------------
+  // CATEGORY
+  // -----------------------------------------
 
   function handleCategory(category) {
     setShowCategories(false);
@@ -41,126 +83,263 @@ function Navbar({
       return;
     }
 
-    navigate(`/search?category=${encodeURIComponent(category)}`);
+    navigate(
+      `/search?category=${encodeURIComponent(
+        category
+      )}`
+    );
   }
 
   return (
     <nav className="navbar">
 
-      {/* LOGO */}
+      {/* =====================================
+          LOGO
+      ===================================== */}
+
       <div className="navbar-logo">
+
         <Link to="/">
           My E-Commerce
         </Link>
+
       </div>
+
 
       <div className="navbar-links">
 
-        {/* ALL DROPDOWN */}
-        <div className="all-menu">
+        {/* =====================================
+            ADMIN NAVBAR
+        ===================================== */}
 
-          <button
-            className="all-button"
-            onClick={() =>
-              setShowCategories(!showCategories)
-            }
-          >
-            All ▾
-          </button>
+        {isAdmin ? (
 
-          {showCategories && (
-            <div className="all-dropdown">
+          <>
 
-              <button onClick={() => handleCategory("All")}>
-                All Products
+            {/* DASHBOARD */}
+
+            <Link to="/admin/dashboard">
+              Dashboard
+            </Link>
+
+
+            {/* PRODUCTS */}
+
+            <Link to="/admin/products">
+              Products
+            </Link>
+
+
+            {/* ORDERS */}
+
+            <Link to="/admin/orders">
+              Orders
+            </Link>
+
+
+            {/* USERS */}
+
+            <Link to="/admin/users">
+              Users
+            </Link>
+
+            {/* Feedbacks */}
+
+            <Link to="/admin/feedback">
+              Feedback
+            </Link>
+
+            <Link to="/admin/reviews">Reviews</Link>
+
+          </>
+
+        ) : (
+
+          /* ===================================
+             CUSTOMER NAVBAR
+          =================================== */
+
+          <>
+
+            {/* ALL DROPDOWN */}
+
+            <div className="all-menu">
+
+              <button
+                className="all-button"
+                onClick={() =>
+                  setShowCategories(
+                    !showCategories
+                  )
+                }
+              >
+                All ▾
               </button>
 
-              <button onClick={() => handleCategory("Mobile")}>
-                Mobile
-              </button>
 
-              <button onClick={() => handleCategory("Laptop")}>
-                Laptop
-              </button>
+              {showCategories && (
 
-              <button onClick={() => handleCategory("Audio")}>
-                Audio
-              </button>
+                <div className="all-dropdown">
 
-              <button onClick={() => handleCategory("Wearable")}>
-                Wearables
-              </button>
+                  <button
+                    onClick={() =>
+                      handleCategory("All")
+                    }
+                  >
+                    All Products
+                  </button>
 
-              <button onClick={() => handleCategory("Accessories")}>
-                Accessories
-              </button>
 
-              <button onClick={() => handleCategory("Monitor")}>
-                Monitors
-              </button>
+                  <button
+                    onClick={() =>
+                      handleCategory("Mobile")
+                    }
+                  >
+                    Mobile
+                  </button>
+
+
+                  <button
+                    onClick={() =>
+                      handleCategory("Laptop")
+                    }
+                  >
+                    Laptop
+                  </button>
+
+
+                  <button
+                    onClick={() =>
+                      handleCategory("Audio")
+                    }
+                  >
+                    Audio
+                  </button>
+
+
+                  <button
+                    onClick={() =>
+                      handleCategory("Wearable")
+                    }
+                  >
+                    Wearables
+                  </button>
+
+
+                  <button
+                    onClick={() =>
+                      handleCategory("Accessories")
+                    }
+                  >
+                    Accessories
+                  </button>
+
+
+                  <button
+                    onClick={() =>
+                      handleCategory("Monitor")
+                    }
+                  >
+                    Monitors
+                  </button>
+
+                </div>
+
+              )}
 
             </div>
-          )}
-
-        </div>
-
-        {/* SEARCH */}
-        <form
-          className="navbar-search"
-          onSubmit={handleSearch}
-        >
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchText}
-            onChange={(event) =>
-              setSearchText(event.target.value)
-            }
-          />
-
-          <button type="submit">
-            🔍
-          </button>
-        </form>
-
-        {/* CART */}
-        <Link to="/cart">
-          Cart ({cartCount})
-        </Link>
-
-        <Link to="/wishlist">♡ Wishlist</Link>
 
 
-        {/* ORDERS */}
-        <Link to="/orders">
-          Orders
-        </Link>
+            {/* SEARCH */}
 
-        {/* PROFILE */}
+            <form
+              className="navbar-search"
+              onSubmit={handleSearch}
+            >
+
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchText}
+                onChange={(event) =>
+                  setSearchText(
+                    event.target.value
+                  )
+                }
+              />
+
+              <button type="submit">
+                🔍
+              </button>
+
+            </form>
+
+
+            {/* CART */}
+
+            <Link to="/cart">
+              Cart ({cartCount})
+            </Link>
+
+
+            {/* WISHLIST */}
+
+            <Link to="/wishlist">
+              ♡ Wishlist
+            </Link>
+
+
+            {/* ORDERS */}
+
+            <Link to="/orders">
+              Orders
+            </Link>
+            
+
+          </>
+
+        )}
+
+
+        {/* =====================================
+            PROFILE
+        ===================================== */}
+
         {isLoggedIn ? (
+
           <div className="profile-menu">
 
             <button
               className="profile-button"
               onClick={() =>
-                setShowDropdown(!showDropdown)
+                setShowDropdown(
+                  !showDropdown
+                )
               }
             >
               👤 {userName || "User"} ▾
             </button>
 
+
             {showDropdown && (
+
               <div className="profile-dropdown">
 
                 <div className="profile-name">
+
                   <strong>
                     {userName || "User"}
                   </strong>
 
                   <span>
-                    Logged in
+                    {isAdmin
+                      ? "ADMIN"
+                      : "Logged in"}
                   </span>
                 </div>
+
+
+                {/* LOGOUT */}
 
                 <button
                   onClick={handleLogout}
@@ -185,4 +364,3 @@ function Navbar({
 }
 
 export default Navbar;
-

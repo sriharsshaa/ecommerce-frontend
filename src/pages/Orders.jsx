@@ -1,48 +1,20 @@
 import { useEffect, useState } from "react";
 
-
 function Orders() {
 
   const [orders, setOrders] = useState([]);
-
   const [orderItems, setOrderItems] = useState({});
-
   const [products, setProducts] = useState([]);
-
   const [loading, setLoading] = useState(true);
 
 
-  // Product image mapping
-
-  const productImages = {
-
-    1: "/images/iphone15.png",
-
-    2: "/images/dell-laptop.png",
-
-    3: "/images/sony_headphones.png",
-
-    4: "/images/samsung_galaxy_s24.png",
-
-    5: "/images/hp_pavilion.png",
-
-    6: "/images/jbl_bluetooth_speaker.png",
-
-    7: "/images/apple_watch_series_9.png",
-
-    8: "/images/logitech_mouse.png",
-
-    9: "/images/samsung_27inch_monitor.png",
-
-  };
-
+  // =========================================================
+  // FETCH ORDERS + PRODUCTS
+  // =========================================================
 
   useEffect(() => {
-
     fetchOrders();
-
     fetchProducts();
-
   }, []);
 
 
@@ -52,18 +24,12 @@ function Orders() {
 
   async function fetchOrders() {
 
-    const token =
-      localStorage.getItem("token");
-
+    const token = localStorage.getItem("token");
 
     if (!token) {
-
       setLoading(false);
-
       return;
-
     }
-
 
     try {
 
@@ -78,20 +44,15 @@ function Orders() {
 
 
       if (!response.ok) {
-
         throw new Error(
           "Failed to fetch orders"
         );
-
       }
 
 
-      const data =
-        await response.json();
-
+      const data = await response.json();
 
       setOrders(data);
-
 
     } catch (error) {
 
@@ -100,13 +61,11 @@ function Orders() {
         error
       );
 
-
     } finally {
 
       setLoading(false);
 
     }
-
   }
 
 
@@ -132,12 +91,9 @@ function Orders() {
       }
 
 
-      const data =
-        await response.json();
-
+      const data = await response.json();
 
       setProducts(data);
-
 
     } catch (error) {
 
@@ -147,7 +103,6 @@ function Orders() {
       );
 
     }
-
   }
 
 
@@ -157,12 +112,14 @@ function Orders() {
 
   async function getOrderItems(orderId) {
 
-    const token =
-      localStorage.getItem("token");
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      return;
+    }
 
 
     // If already open, close it
-
     if (orderItems[orderId]) {
 
       setOrderItems((current) => {
@@ -171,17 +128,12 @@ function Orders() {
           ...current,
         };
 
-
         delete updated[orderId];
 
-
         return updated;
-
       });
 
-
       return;
-
     }
 
 
@@ -206,18 +158,13 @@ function Orders() {
       }
 
 
-      const items =
-        await response.json();
+      const items = await response.json();
 
 
       setOrderItems((current) => ({
-
         ...current,
-
         [orderId]: items,
-
       }));
-
 
     } catch (error) {
 
@@ -227,8 +174,143 @@ function Orders() {
       );
 
     }
-
   }
+
+
+  // =========================================================
+  // CANCEL ORDER
+  // =========================================================
+
+  const cancelOrder = async (orderId) => {
+
+    const token = localStorage.getItem("token");
+
+
+    if (!token) {
+      alert("Please login first");
+      return;
+    }
+
+
+    try {
+
+      const response = await fetch(
+        `http://localhost:8080/api/orders/${orderId}/cancel`,
+        {
+          method: "PUT",
+
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+
+      if (!response.ok) {
+
+        const message =
+          await response.text();
+
+        throw new Error(
+          message || "Failed to cancel order"
+        );
+
+      }
+
+
+      const updatedOrder =
+        await response.json();
+
+
+      // Update only the cancelled order
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === updatedOrder.id
+            ? updatedOrder
+            : order
+        )
+      );
+
+
+      alert(
+        "Order cancelled successfully"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Cancel order error:",
+        error
+      );
+
+
+      alert(
+        "Unable to cancel order"
+      );
+    }
+  };
+
+
+  // =========================================================
+  // ORDER STATUS
+  // =========================================================
+
+function renderOrderStatus(status) {
+  if (status === "CANCELLED") {
+    return (
+      <div className="order-status-timeline cancelled-order-timeline">
+        <div className="status-step cancelled completed">
+          <div className="status-icon">✕</div>
+          <span>CANCELLED</span>
+        </div>
+      </div>
+    );
+  }
+
+  const statuses = [
+    "PLACED",
+    "CONFIRMED",
+    "SHIPPED",
+    "DELIVERED",
+  ];
+
+  const currentIndex =
+    statuses.indexOf(status);
+
+  return (
+    <div className="order-status-timeline">
+      {statuses.map((item, index) => {
+        const completed =
+          index <= currentIndex;
+
+        return (
+          <div
+            className={`status-step ${
+              completed ? "completed" : ""
+            }`}
+            key={item}
+          >
+            <div className="status-icon">
+              {completed ? "✓" : "○"}
+            </div>
+
+            <span>{item}</span>
+
+            {index < statuses.length - 1 && (
+              <div
+                className={`status-line ${
+                  index < currentIndex
+                    ? "completed"
+                    : ""
+                }`}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 
   // =========================================================
@@ -242,15 +324,12 @@ function Orders() {
       <div className="orders-page">
 
         <div className="orders-loading">
-
           Loading your orders...
-
         </div>
 
       </div>
 
     );
-
   }
 
 
@@ -272,23 +351,17 @@ function Orders() {
         <div>
 
           <p className="orders-label">
-
             ORDER HISTORY
-
           </p>
 
 
           <h1>
-
             My Orders
-
           </h1>
 
 
           <p>
-
             Track and review your previous orders.
-
           </p>
 
         </div>
@@ -305,23 +378,17 @@ function Orders() {
         <div className="empty-orders">
 
           <div className="empty-orders-icon">
-
             📦
-
           </div>
 
 
           <h2>
-
             No orders yet
-
           </h2>
 
 
           <p>
-
             Your completed orders will appear here.
-
           </p>
 
         </div>
@@ -335,9 +402,7 @@ function Orders() {
 
         <div className="orders-list">
 
-
           {orders.map((order) => {
-
 
             const items =
               orderItems[order.id];
@@ -357,20 +422,15 @@ function Orders() {
 
                 <div className="order-card-header">
 
-
                   <div>
 
                     <p className="order-label">
-
                       ORDER
-
                     </p>
 
 
                     <h2>
-
                       #{order.id}
-
                     </h2>
 
                   </div>
@@ -382,7 +442,6 @@ function Orders() {
 
                   </span>
 
-
                 </div>
 
 
@@ -393,14 +452,10 @@ function Orders() {
                 <div className="order-details">
 
 
-                  {/* Order Date */}
-
                   <div className="order-detail">
 
                     <span className="detail-label">
-
                       Order Date
-
                     </span>
 
 
@@ -409,7 +464,12 @@ function Orders() {
                       {new Date(
                         order.createdAt
                       ).toLocaleDateString(
-                        "en-IN"
+                        "en-IN",
+                        {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        }
                       )}
 
                     </strong>
@@ -417,21 +477,19 @@ function Orders() {
                   </div>
 
 
-                  {/* Total Amount */}
-
                   <div className="order-detail">
 
                     <span className="detail-label">
-
                       Total Amount
-
                     </span>
 
 
                     <strong className="order-total">
 
                       ₹
-                      {order.totalAmount.toLocaleString(
+                      {Number(
+                        order.totalAmount
+                      ).toLocaleString(
                         "en-IN"
                       )}
 
@@ -439,34 +497,68 @@ function Orders() {
 
                   </div>
 
+                </div>
+
+
+                {/* =================================================
+                    ORDER STATUS TIMELINE
+                ================================================= */}
+
+                <div className="order-status-section">
+
+                  <h3>
+                    Order Status
+                  </h3>
+
+
+                  {renderOrderStatus(
+                    order.status
+                  )}
 
                 </div>
 
 
                 {/* =================================================
-                    VIEW ITEMS BUTTON
+                    ORDER ACTIONS
                 ================================================= */}
 
                 <div className="order-actions">
 
 
+                  {/* VIEW ITEMS */}
+
                   <button
                     className="view-items-button"
                     onClick={() =>
-                      getOrderItems(order.id)
+                      getOrderItems(
+                        order.id
+                      )
                     }
                   >
 
                     {items
-
                       ? "Hide Items ↑"
-
-                      : "View Items →"
-
-                    }
+                      : "View Items →"}
 
                   </button>
 
+
+                  {/* CANCEL ORDER */}
+
+                  {order.status === "PLACED" && (
+
+                    <button
+                      className="cancel-order-btn"
+                      onClick={() =>
+                        cancelOrder(
+                          order.id
+                        )
+                      }
+                    >
+                      Cancel Order
+                    </button>
+
+                  )}
 
                 </div>
 
@@ -479,34 +571,38 @@ function Orders() {
 
                   <div className="order-items">
 
-
                     <h3>
-
                       Items in this order
-
                     </h3>
 
 
                     {items.map((item) => {
 
-
-                      // Find product information
-
                       const product =
                         products.find(
                           (product) =>
-                            product.id ===
-                            item.productId
+                            Number(
+                              product.id
+                            ) ===
+                            Number(
+                              item.productId
+                            )
                         );
 
 
-                      // Product not found
-
                       if (!product) {
-
                         return null;
-
                       }
+
+
+                      // =================================================
+                      // DYNAMIC PRODUCT IMAGE
+                      // =================================================
+
+                      const imageUrl =
+                        product.imageUrl
+                          ? `http://localhost:8080${product.imageUrl}`
+                          : null;
 
 
                       return (
@@ -517,30 +613,35 @@ function Orders() {
                         >
 
 
-                          {/* =====================================
+                          {/* =================================================
                               PRODUCT IMAGE
-                          ===================================== */}
+                          ================================================= */}
 
                           <div className="order-item-image">
 
-                            <img
-                              src={
-                                productImages[
-                                  product.id
-                                ]
-                              }
-                              alt={product.name}
-                            />
+                            {imageUrl ? (
+
+                              <img
+                                src={imageUrl}
+                                alt={product.name}
+                              />
+
+                            ) : (
+
+                              <span>
+                                No Image
+                              </span>
+
+                            )}
 
                           </div>
 
 
-                          {/* =====================================
+                          {/* =================================================
                               PRODUCT INFORMATION
-                          ===================================== */}
+                          ================================================= */}
 
                           <div className="order-item-info">
-
 
                             <span className="order-item-category">
 
@@ -558,17 +659,17 @@ function Orders() {
 
                             <span className="order-item-quantity">
 
-                              Quantity: {item.quantity}
+                              Quantity:{" "}
+                              {item.quantity}
 
                             </span>
-
 
                           </div>
 
 
-                          {/* =====================================
+                          {/* =================================================
                               PRICE
-                          ===================================== */}
+                          ================================================= */}
 
                           <div className="order-item-price">
 
@@ -576,8 +677,12 @@ function Orders() {
 
                               ₹
                               {(
-                                item.price *
-                                item.quantity
+                                Number(
+                                  item.price
+                                ) *
+                                Number(
+                                  item.quantity
+                                )
                               ).toLocaleString(
                                 "en-IN"
                               )}
@@ -586,18 +691,15 @@ function Orders() {
 
                           </div>
 
-
                         </div>
 
                       );
 
                     })}
 
-
                   </div>
 
                 )}
-
 
               </div>
 
@@ -605,16 +707,13 @@ function Orders() {
 
           })}
 
-
         </div>
 
       )}
 
-
     </div>
 
   );
-
 }
 
 

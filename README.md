@@ -71,3 +71,27 @@ Make sure the Spring Boot backend is also running at:
 http://localhost:8080
 ```
 
+## Admin Demo Login
+
+To test the admin features locally, use the following demo account:
+
+```text
+Email: sri@gmail.com
+Password: Sri@123
+```
+
+### Admin Features
+
+After logging in with the demo admin account, you can access:
+
+* Admin Dashboard
+* Product Management
+* Add products
+* Update products
+* Delete products
+* Manage product stock
+* Order Management
+* User Management
+* Feedback Management
+* Review Management
+

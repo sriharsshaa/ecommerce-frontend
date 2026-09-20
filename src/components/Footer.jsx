@@ -12,7 +12,7 @@ function Footer() {
     message: "",
   });
 
-  function handleSubmitFeedback(event) {
+  async function handleSubmitFeedback(event) {
     event.preventDefault();
 
     if (rating === 0) {
@@ -33,24 +33,66 @@ function Footer() {
       return;
     }
 
-    setNotification({
-      show: true,
-      type: "success",
-      message: "Thank you! Your feedback has been submitted.",
-    });
+    const token = localStorage.getItem("token");
 
-    setRating(0);
-    setFeedback("");
+    if (!token) {
+      setNotification({
+        show: true,
+        type: "error",
+        message: "Please login to submit feedback.",
+      });
+      return;
+    }
 
-    setTimeout(() => {
-      setShowFeedback(false);
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/feedback?rating=${rating}&comment=${encodeURIComponent(
+          feedback.trim()
+        )}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to submit feedback");
+      }
 
       setNotification({
-        show: false,
-        type: "",
-        message: "",
+        show: true,
+        type: "success",
+        message: "Thank you! Your feedback has been submitted.",
       });
-    }, 1800);
+
+      setRating(0);
+      setFeedback("");
+
+      setTimeout(() => {
+        setShowFeedback(false);
+
+        setNotification({
+          show: false,
+          type: "",
+          message: "",
+        });
+      }, 1800);
+
+    } catch (error) {
+      console.error(
+        "Feedback submission error:",
+        error
+      );
+
+      setNotification({
+        show: true,
+        type: "error",
+        message:
+          "Unable to submit feedback. Please try again.",
+      });
+    }
   }
 
   return (
@@ -103,10 +145,18 @@ function Footer() {
             <h3>Shop</h3>
 
             <Link to="/products">All Products</Link>
-            <Link to="/search?category=Mobile">Mobile</Link>
-            <Link to="/search?category=Laptop">Laptops</Link>
-            <Link to="/search?category=Audio">Audio</Link>
-            <Link to="/search?category=Wearable">Wearables</Link>
+            <Link to="/search?category=Mobile">
+              Mobile
+            </Link>
+            <Link to="/search?category=Laptop">
+              Laptops
+            </Link>
+            <Link to="/search?category=Audio">
+              Audio
+            </Link>
+            <Link to="/search?category=Wearable">
+              Wearables
+            </Link>
 
             <Link to="/search?category=Accessories">
               Accessories
@@ -117,20 +167,43 @@ function Footer() {
           <div className="footer-column">
             <h3>Customer Support</h3>
 
-            <Link to="/orders">Order Tracking</Link>
-            <Link to="/cart">Cart & Checkout</Link>
-            <Link to="/help">Help Center</Link>
-            <Link to="/contact">Contact Us</Link>
-            <Link to="/returns">Returns & Refunds</Link>
+            <Link to="/orders">
+              Order Tracking
+            </Link>
+
+            <Link to="/cart">
+              Cart & Checkout
+            </Link>
+
+            <Link to="/help">
+              Help Center
+            </Link>
+
+            <Link to="/contact">
+              Contact Us
+            </Link>
+
+            <Link to="/returns">
+              Returns & Refunds
+            </Link>
           </div>
 
           {/* About */}
           <div className="footer-column">
             <h3>About</h3>
 
-            <Link to="/about">About Us</Link>
-            <Link to="/about">Our Story</Link>
-            <Link to="/about">Careers</Link>
+            <Link to="/about">
+              About Us
+            </Link>
+
+            <Link to="/about">
+              Our Story
+            </Link>
+
+            <Link to="/about">
+              Careers
+            </Link>
+
             <Link to="/accessibility">
               Accessibility
             </Link>
@@ -142,18 +215,22 @@ function Footer() {
         <div className="footer-feedback">
 
           <div>
-            <h3>We'd love to hear from you.</h3>
+            <h3>
+              We'd love to hear from you.
+            </h3>
 
             <p>
               Have a suggestion or feedback?
-              Let us know how we can make your shopping
-              experience better.
+              Let us know how we can make your
+              shopping experience better.
             </p>
           </div>
 
           <button
             className="footer-feedback-button"
-            onClick={() => setShowFeedback(true)}
+            onClick={() =>
+              setShowFeedback(true)
+            }
           >
             Share Feedback
           </button>
@@ -168,6 +245,7 @@ function Footer() {
           </p>
 
           <div className="footer-legal">
+
             <Link to="/privacy">
               Privacy Policy
             </Link>
@@ -179,6 +257,7 @@ function Footer() {
             <Link to="/privacy">
               Privacy & Security
             </Link>
+
           </div>
 
         </div>
@@ -189,7 +268,9 @@ function Footer() {
       {showFeedback && (
         <div
           className="feedback-overlay"
-          onClick={() => setShowFeedback(false)}
+          onClick={() =>
+            setShowFeedback(false)
+          }
         >
 
           {/* Feedback Sidebar */}
@@ -203,6 +284,7 @@ function Footer() {
             <div className="feedback-sidebar-header">
 
               <div>
+
                 <span className="feedback-label">
                   FEEDBACK
                 </span>
@@ -210,6 +292,7 @@ function Footer() {
                 <h2>
                   How was your experience?
                 </h2>
+
               </div>
 
               <button
@@ -228,7 +311,9 @@ function Footer() {
               shopping experience.
             </p>
 
-            <form onSubmit={handleSubmitFeedback}>
+            <form
+              onSubmit={handleSubmitFeedback}
+            >
 
               {/* Rating */}
               <div className="feedback-rating-section">
@@ -239,30 +324,34 @@ function Footer() {
 
                 <div className="feedback-stars">
 
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      className={
-                        star <= rating
-                          ? "feedback-star active"
-                          : "feedback-star"
-                      }
-                      onClick={() =>
-                        setRating(star)
-                      }
-                      aria-label={`Rate ${star} out of 5`}
-                    >
-                      ★
-                    </button>
-                  ))}
+                  {[1, 2, 3, 4, 5].map(
+                    (star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        className={
+                          star <= rating
+                            ? "feedback-star active"
+                            : "feedback-star"
+                        }
+                        onClick={() =>
+                          setRating(star)
+                        }
+                        aria-label={`Rate ${star} out of 5`}
+                      >
+                        ★
+                      </button>
+                    )
+                  )}
 
                 </div>
 
                 <span className="feedback-rating-text">
+
                   {rating === 0
                     ? "Select a rating"
                     : `${rating} out of 5`}
+
                 </span>
 
               </div>
@@ -278,7 +367,9 @@ function Footer() {
                   id="feedback"
                   value={feedback}
                   onChange={(event) =>
-                    setFeedback(event.target.value)
+                    setFeedback(
+                      event.target.value
+                    )
                   }
                   placeholder="Share your thoughts, suggestions, or experience..."
                   rows="6"
@@ -307,12 +398,15 @@ function Footer() {
         >
 
           <div className="feedback-notification-icon">
+
             {notification.type === "success"
               ? "✓"
               : "!"}
+
           </div>
 
           <div>
+
             <strong>
               {notification.type === "success"
                 ? "Thank you"
@@ -322,10 +416,12 @@ function Footer() {
             <p>
               {notification.message}
             </p>
+
           </div>
 
         </div>
       )}
+
     </>
   );
 }

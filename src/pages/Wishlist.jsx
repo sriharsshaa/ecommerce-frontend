@@ -1,19 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const productImages = {
-  1: "/images/iphone15.png",
-  2: "/images/dell-laptop.png",
-  3: "/images/sony_headphones.png",
-  4: "/images/samsung_galaxy_s24.png",
-  5: "/images/hp_pavilion.png",
-  6: "/images/jbl_bluetooth_speaker.png",
-  7: "/images/apple_watch_series_9.png",
-  8: "/images/logitech_mouse.png",
-  9: "/images/samsung_27inch_monitor.png",
-};
+function Wishlist({ addToCart, showNotification }) {
 
-function Wishlist() {
   const navigate = useNavigate();
 
   const [wishlist, setWishlist] = useState([]);
@@ -33,31 +22,44 @@ function Wishlist() {
   // =========================================================
 
   async function fetchWishlist() {
-    const token = localStorage.getItem("token");
+
+    const token =
+      localStorage.getItem("token");
 
     if (!token) {
       return;
     }
 
     try {
-      const response = await fetch(
-        "http://localhost:8080/api/wishlist",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+
+      const response =
+        await fetch(
+          "http://localhost:8080/api/wishlist",
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch wishlist");
+
+        throw new Error(
+          "Failed to fetch wishlist"
+        );
       }
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       setWishlist(data);
     } catch (error) {
-      console.error("Fetch Wishlist error:", error);
+
+      console.error(
+        "Fetch Wishlist error:",
+        error
+      );
     }
   }
 
@@ -67,19 +69,29 @@ function Wishlist() {
 
   async function fetchProducts() {
     try {
-      const response = await fetch(
-        "http://localhost:8080/api/products"
-      );
+
+      const response =
+        await fetch(
+          "http://localhost:8080/api/products"
+        );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch products");
+
+        throw new Error(
+          "Failed to fetch products"
+        );
       }
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       setProducts(data);
     } catch (error) {
-      console.error("Fetch products error:", error);
+
+      console.error(
+        "Fetch products error:",
+        error
+      );
     }
   }
 
@@ -87,37 +99,65 @@ function Wishlist() {
   // REMOVE FROM WISHLIST
   // =========================================================
 
-  async function removeFromWishlist(productId) {
-    const token = localStorage.getItem("token");
+  async function removeFromWishlist(
+    productId
+  ) {
+
+    const token =
+      localStorage.getItem("token");
 
     if (!token) {
       return;
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/wishlist/${productId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+
+      const response =
+        await fetch(
+          `http://localhost:8080/api/wishlist/${productId}`,
+          {
+            method: "DELETE",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
 
       if (!response.ok) {
-        throw new Error("Failed to remove from wishlist");
+
+        throw new Error(
+          "Failed to remove from wishlist"
+        );
       }
 
-      // Remove immediately from the screen
-      setWishlist((currentWishlist) =>
-        currentWishlist.filter(
-          (item) =>
-            Number(item.productId) !== Number(productId)
-        )
+      // Remove immediately from screen
+      setWishlist(
+        (currentWishlist) =>
+          currentWishlist.filter(
+            (item) =>
+              Number(item.productId) !==
+              Number(productId)
+          )
       );
+
+      showNotification(
+        "Removed from wishlist",
+        "success"
+      );
+
     } catch (error) {
-      console.error("Remove Wishlist error:", error);
+
+      console.error(
+        "Remove Wishlist error:",
+        error
+      );
+
+      showNotification(
+        "Failed to remove from wishlist",
+        "error"
+      );
     }
   }
 
@@ -139,46 +179,116 @@ function Wishlist() {
 
           {wishlist.map((item) => {
 
-            const product = products.find(
-              (product) =>
-                Number(product.id) ===
-                Number(item.productId)
-            );
+            const product =
+              products.find(
+                (product) =>
+                  Number(product.id) ===
+                  Number(item.productId)
+              );
 
             if (!product) {
               return null;
             }
 
+            // =================================================
+            // DYNAMIC PRODUCT IMAGE
+            // =================================================
+
+            const imageUrl = product.imageUrl
+              ? `http://localhost:8080${product.imageUrl}`
+              : null;
+
             return (
+
               <div
                 className="wishlist-card"
                 key={item.id}
                 onClick={() =>
-                  navigate(`/products/${product.id}`)
+                  navigate(
+                    `/products/${product.id}`
+                  )
                 }
               >
 
-                <img
-                  className="wishlist-image"
-                  src={productImages[product.id]}
-                  alt={product.name}
-                />
+                {/* =================================================
+                    PRODUCT IMAGE
+                ================================================= */}
 
-                <h3>{product.name}</h3>
+                {imageUrl ? (
+
+                  <img
+                    className="wishlist-image"
+                    src={imageUrl}
+                    alt={product.name}
+                  />
+
+                ) : (
+
+                  <div className="wishlist-image">
+                    No Image
+                  </div>
+
+                )}
+
+                {/* =================================================
+                    PRODUCT NAME
+                ================================================= */}
+
+                <h3>
+                  {product.name}
+                </h3>
+
+                {/* =================================================
+                    PRODUCT PRICE
+                ================================================= */}
 
                 <p>
-                  ₹{product.price.toLocaleString("en-IN")}
+                  ₹
+                  {product.price.toLocaleString(
+                    "en-IN"
+                  )}
                 </p>
 
-                <button
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    removeFromWishlist(product.id);
-                  }}
-                >
-                  Remove
-                </button>
+                {/* =================================================
+                    ACTION BUTTONS
+                ================================================= */}
 
+                <div className="wishlist-actions">
+
+                  {/* ADD TO CART */}
+
+                  <button
+                    className="wishlist-cart-button"
+                    onClick={(event) => {
+
+                      event.stopPropagation();
+
+                      addToCart(
+                        product.id
+                      );
+
+                    }}
+                  >
+                    Add to Cart
+                  </button>
+
+                  {/* REMOVE */}
+
+                  <button
+                    className="wishlist-remove-button"
+                    onClick={(event) => {
+
+                      event.stopPropagation();
+
+                      removeFromWishlist(
+                        product.id
+                      );
+
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
             );
           })}

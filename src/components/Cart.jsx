@@ -79,30 +79,21 @@ function Cart({
                 key={product.id}
                 className="cart-product"
               >
+              
+              {/* PRODUCT IMAGE */}
 
+              <div className="cart-product-image">
 
-{/* PRODUCT IMAGE */}
+                {product.imageUrl ? (
+                  <img
+                    src={`http://localhost:8080${product.imageUrl}`}
+                    alt={product.name}
+                  />
+                ) : (
+                  <span>No Image</span>
+                )}
 
-<div className="cart-product-image">
-
-  <img
-    src={
-      {
-        1: "/images/iphone15.png",
-        2: "/images/dell-laptop.png",
-        3: "/images/sony_headphones.png",
-        4: "/images/samsung_galaxy_s24.png",
-        5: "/images/hp_pavilion.png",
-        6: "/images/jbl_bluetooth_speaker.png",
-        7: "/images/apple_watch_series_9.png",
-        8: "/images/logitech_mouse.png",
-        9: "/images/samsung_27inch_monitor.png",
-      }[product.id]
-    }
-    alt={product.name}
-  />
-
-</div>
+              </div>
 
 
                 {/* PRODUCT DETAILS */}

@@ -54,24 +54,54 @@ function Login({ setIsLoggedIn, showNotification }) {
 
       console.log("Login response:", loginResponse);
 
+      // Store JWT token
       localStorage.setItem(
         "token",
         loginResponse.token
       );
 
+      // Store username
       localStorage.setItem(
         "userName",
         loginResponse.name
       );
 
+      // Update login state
       setIsLoggedIn(true);
+
+      // -----------------------------------------
+      // GET ROLE FROM JWT TOKEN
+      // -----------------------------------------
+
+      const tokenParts =
+        loginResponse.token.split(".");
+
+      const payload = JSON.parse(
+        atob(tokenParts[1])
+      );
+
+      const role = payload.role;
+
+      console.log("User role:", role);
+
+      // -----------------------------------------
+      // LOGIN SUCCESS MESSAGE
+      // -----------------------------------------
 
       showNotification(
         "Login successful! Welcome back.",
         "success"
       );
 
-      navigate("/products");
+      // -----------------------------------------
+      // REDIRECT BASED ON ROLE
+      // -----------------------------------------
+
+      if (role === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/products");
+      }
 
     } catch (error) {
       console.error("Login error:", error);
@@ -88,13 +118,25 @@ function Login({ setIsLoggedIn, showNotification }) {
 
   return (
     <div className="login-page">
+
       <div className="login-container">
 
-        <div className="login-brand">
-          <div className="brand-icon">🛍️</div>
+        {/* BRAND */}
 
-          <h1>My E-Commerce</h1>
+        <div className="login-brand">
+
+          <div className="brand-icon">
+            🛍️
+          </div>
+
+          <h1>
+            My E-Commerce
+          </h1>
+
         </div>
+
+
+        {/* LOGIN CARD */}
 
         <div className="login-card">
 
@@ -113,7 +155,12 @@ function Login({ setIsLoggedIn, showNotification }) {
             </p>
           </div>
 
+
+          {/* LOGIN FORM */}
+
           <form onSubmit={handleLogin}>
+
+            {/* EMAIL */}
 
             <div className="form-group">
               <label>
@@ -130,6 +177,9 @@ function Login({ setIsLoggedIn, showNotification }) {
                 required
               />
             </div>
+
+
+            {/* PASSWORD */}
 
             <div className="form-group">
               <label>
@@ -169,6 +219,9 @@ function Login({ setIsLoggedIn, showNotification }) {
               </div>
             </div>
 
+
+            {/* SIGN IN */}
+
             <button
               type="submit"
               className="login-button"
@@ -181,11 +234,17 @@ function Login({ setIsLoggedIn, showNotification }) {
 
           </form>
 
+
+          {/* DIVIDER */}
+
           <div className="login-divider">
             <span>
               New to My E-Commerce?
             </span>
           </div>
+
+
+          {/* REGISTER */}
 
           <Link
             to="/register"
@@ -195,6 +254,9 @@ function Login({ setIsLoggedIn, showNotification }) {
           </Link>
 
         </div>
+
+
+        {/* FOOTER */}
 
         <p className="login-footer">
           © 2026 My E-Commerce. All rights reserved.

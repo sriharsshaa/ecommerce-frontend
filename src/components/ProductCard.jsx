@@ -6,17 +6,10 @@ function ProductCard({ product, addToWishlist }) {
 
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  const productImages = {
-    1: "/images/iphone15.png",
-    2: "/images/dell-laptop.png",
-    3: "/images/sony_headphones.png",
-    4: "/images/samsung_galaxy_s24.png",
-    5: "/images/hp_pavilion.png",
-    6: "/images/jbl_bluetooth_speaker.png",
-    7: "/images/apple_watch_series_9.png",
-    8: "/images/logitech_mouse.png",
-    9: "/images/samsung_27inch_monitor.png",
-  };
+  // Dynamic image URL from backend
+  const imageUrl = product.imageUrl
+    ? `http://localhost:8080${product.imageUrl}`
+    : null;
 
   // Check whether this product is already in wishlist
   useEffect(() => {
@@ -129,10 +122,14 @@ function ProductCard({ product, addToWishlist }) {
     >
       <div className="product-card-image">
 
-        <img
-          src={productImages[product.id]}
-          alt={product.name}
-        />
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={product.name}
+          />
+        ) : (
+          <span>No Image</span>
+        )}
 
         <button
           className={`wishlist-button ${
