@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 function ProductDetails({ addToCart, showNotification }) {
   const { id } = useParams();
 
+  const navigate = useNavigate();
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Related products
+  const [relatedProducts, setRelatedProducts] = useState([]);
 
   // Wishlist state
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -44,6 +49,24 @@ function ProductDetails({ addToCart, showNotification }) {
         );
 
         setProduct(selectedProduct);
+
+        // =================================================
+        // FIND RELATED PRODUCTS
+        // =================================================
+
+        if (selectedProduct) {
+          const related = data
+            .filter(
+              (item) =>
+                item.category === selectedProduct.category &&
+                item.id !== selectedProduct.id
+            )
+            .slice(0, 4);
+
+          setRelatedProducts(related);
+        } else {
+          setRelatedProducts([]);
+        }
 
         // Reset quantity whenever product changes
         setQuantity(1);
@@ -92,6 +115,7 @@ function ProductDetails({ addToCart, showNotification }) {
         );
 
         setIsWishlisted(exists);
+
       } catch (error) {
         console.error(
           "Wishlist check error:",
@@ -138,11 +162,13 @@ function ProductDetails({ addToCart, showNotification }) {
         );
 
         setReviews(data);
+
       } catch (error) {
         console.error(
           "Reviews fetch error:",
           error
         );
+
       } finally {
         setReviewsLoading(false);
       }
@@ -254,6 +280,7 @@ function ProductDetails({ addToCart, showNotification }) {
         "Product added to wishlist ❤️",
         "success"
       );
+
     } catch (error) {
       console.error(
         "Wishlist error:",
@@ -328,6 +355,7 @@ function ProductDetails({ addToCart, showNotification }) {
         "Review submitted successfully",
         "success"
       );
+
     } catch (error) {
       console.error(
         "Submit review error:",
@@ -338,6 +366,7 @@ function ProductDetails({ addToCart, showNotification }) {
         "Failed to submit review",
         "error"
       );
+
     } finally {
       setSubmittingReview(false);
     }
@@ -368,6 +397,37 @@ function ProductDetails({ addToCart, showNotification }) {
 
     // Pass both product ID and selected quantity
     addToCart(product.id, quantity);
+  }
+
+  // =====================================================
+  // BUY NOW
+  // =====================================================
+
+  function handleBuyNow() {
+
+    if (product.stock <= 0) {
+      showNotification(
+        "This product is out of stock",
+        "error"
+      );
+      return;
+    }
+
+    if (quantity > product.stock) {
+      showNotification(
+        `Only ${product.stock} item${
+          product.stock === 1 ? "" : "s"
+        } available`,
+        "error"
+      );
+      return;
+    }
+
+    // Add selected quantity to cart
+    addToCart(product.id, quantity);
+
+    // Go directly to checkout
+    navigate("/checkout");
   }
 
   // =====================================================
@@ -464,14 +524,19 @@ function ProductDetails({ addToCart, showNotification }) {
           <h1>{product.name}</h1>
 
           <p className="product-details-price">
-            ₹{Number(product.price).toLocaleString("en-IN")}
+            ₹
+            {Number(
+              product.price
+            ).toLocaleString("en-IN")}
           </p>
 
           {/* =================================================
               STOCK STATUS
           ================================================= */}
 
-          <p className={`product-stock-status ${stockClass}`}>
+          <p
+            className={`product-stock-status ${stockClass}`}
+          >
             {stockMessage}
           </p>
 
@@ -484,7 +549,9 @@ function ProductDetails({ addToCart, showNotification }) {
             <span className="rating-stars">
 
               {"★".repeat(
-                Math.round(Number(averageRating))
+                Math.round(
+                  Number(averageRating)
+                )
               )}
 
               {"☆".repeat(
@@ -550,12 +617,13 @@ function ProductDetails({ addToCart, showNotification }) {
           )}
 
           {/* =================================================
-              CART + WISHLIST BUTTONS
+              CART + BUY NOW + WISHLIST
           ================================================= */}
 
           <div className="product-details-actions">
 
             <button
+              type="button"
               className="product-details-cart-button"
               onClick={handleAddToCart}
               disabled={stock === 0}
@@ -566,6 +634,18 @@ function ProductDetails({ addToCart, showNotification }) {
             </button>
 
             <button
+              type="button"
+              className="product-details-buy-now-button"
+              onClick={handleBuyNow}
+              disabled={stock === 0}
+            >
+              {stock === 0
+                ? "Out of Stock"
+                : "Buy Now"}
+            </button>
+
+            <button
+              type="button"
               className={`product-details-wishlist-button ${
                 isWishlisted
                   ? "wishlisted"
@@ -1195,6 +1275,90 @@ function ProductDetails({ addToCart, showNotification }) {
         </div>
 
       </div>
+
+      {/* =====================================================
+          RELATED PRODUCTS
+      ===================================================== */}
+
+      {relatedProducts.length > 0 && (
+        <div className="related-products">
+
+          <div className="related-products-header">
+
+            <h2>Related Products</h2>
+
+            <p>
+              More products from the{" "}
+              {product.category} category
+            </p>
+
+          </div>
+
+          <div className="related-products-grid">
+
+            {relatedProducts.map((relatedProduct) => {
+
+              const relatedImageUrl =
+                relatedProduct.imageUrl
+                  ? `http://localhost:8080${relatedProduct.imageUrl}`
+                  : null;
+
+              return (
+                <div
+                  className="related-product-card"
+                  key={relatedProduct.id}
+                >
+
+                  <div className="related-product-image">
+
+                    {relatedImageUrl ? (
+                      <img
+                        src={relatedImageUrl}
+                        alt={relatedProduct.name}
+                      />
+                    ) : (
+                      <span>No Image</span>
+                    )}
+
+                  </div>
+
+                  <div className="related-product-info">
+
+                    <p className="related-product-category">
+                      {relatedProduct.category}
+                    </p>
+
+                    <h3>
+                      {relatedProduct.name}
+                    </h3>
+
+                    <p className="related-product-price">
+                      ₹
+                      {Number(
+                        relatedProduct.price
+                      ).toLocaleString("en-IN")}
+                    </p>
+
+                    <button
+                      className="related-product-button"
+                      onClick={() =>
+                        window.location.href =
+                          `/products/${relatedProduct.id}`
+                      }
+                    >
+                      View Product
+                    </button>
+
+                  </div>
+
+                </div>
+              );
+            })}
+
+          </div>
+
+        </div>
+      )}
 
     </div>
   );

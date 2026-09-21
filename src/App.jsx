@@ -35,6 +35,7 @@ import AdminOrders from "./pages/AdminOrders";
 import AdminUsers from "./pages/AdminUsers";
 import AdminFeedback from "./pages/AdminFeedback";
 import AdminReviews from "./pages/AdminReviews";
+import Addresses from "./pages/Addresses";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -611,7 +612,9 @@ function AppContent({
 
         <Route
           path="/search"
-          element={<Search />}
+          element={<Search 
+          addToCart={addToCart}
+          />}
         />
 
         {/* ALL PRODUCTS */}
@@ -702,95 +705,157 @@ function AppContent({
           }
         />
 
-        {/* CHECKOUT */}
+      {/* CHECKOUT */}
 
-        <Route
-          path="/checkout"
-          element={
-            <Checkout
-              cart={cart}
-              onPlaceOrder={async (
-                paymentMethod
-              ) => {
-                try {
-                  const token =
-                    localStorage.getItem(
-                      "token"
-                    );
+      <Route
+        path="/checkout"
+        element={
+          <Checkout
+            cart={cart}
+            onPlaceOrder={async (
+              paymentMethod,
+              addressId
+            ) => {
+              try {
 
-                  if (!token) {
-                    showNotification(
-                      "Please login first.",
-                      "error"
-                    );
-                    return;
-                  }
+                const token =
+                  localStorage.getItem("token");
 
-                  const response =
-                    await fetch(
-                      `http://localhost:8080/api/orders?paymentMethod=${encodeURIComponent(
-                        paymentMethod
-                      )}`,
-                      {
-                        method: "POST",
-                        headers: {
-                          Authorization:
-                            `Bearer ${token}`,
-                        },
-                      }
-                    );
 
-                  if (!response.ok) {
-                    const errorText =
-                      await response.text();
+                // -----------------------------------------
+                // CHECK LOGIN
+                // -----------------------------------------
 
-                    console.error(
-                      "Backend error:",
-                      errorText
-                    );
-
-                    throw new Error(
-                      errorText ||
-                        "Failed to place order"
-                    );
-                  }
-
-                  const order =
-                    await response.json();
-
-                  console.log(
-                    "Order placed:",
-                    order
-                  );
+                if (!token) {
 
                   showNotification(
-                    `Order placed successfully! Order ID: ${order.id}`,
-                    "success"
-                  );
-
-                  window.location.href =
-                    "/orders";
-                } catch (error) {
-                  console.error(
-                    "Error placing order:",
-                    error
-                  );
-
-                  showNotification(
-                    "Failed to place order.",
+                    "Please login first.",
                     "error"
                   );
+
+                  return;
                 }
-              }}
-            />
-          }
-        />
+
+
+                // -----------------------------------------
+                // CHECK ADDRESS
+                // -----------------------------------------
+
+                if (!addressId) {
+
+                  showNotification(
+                    "Please select a delivery address.",
+                    "error"
+                  );
+
+                  return;
+                }
+
+
+                // -----------------------------------------
+                // PLACE ORDER
+                // -----------------------------------------
+
+                const response =
+                  await fetch(
+                    `http://localhost:8080/api/orders?paymentMethod=${encodeURIComponent(
+                      paymentMethod
+                    )}&addressId=${addressId}`,
+                    {
+                      method: "POST",
+
+                      headers: {
+                        Authorization:
+                          `Bearer ${token}`,
+                      },
+                    }
+                  );
+
+
+                // -----------------------------------------
+                // HANDLE BACKEND ERROR
+                // -----------------------------------------
+
+                if (!response.ok) {
+
+                  const errorText =
+                    await response.text();
+
+                  console.error(
+                    "Backend error:",
+                    errorText
+                  );
+
+                  throw new Error(
+                    errorText ||
+                    "Failed to place order"
+                  );
+                }
+
+
+                // -----------------------------------------
+                // GET CREATED ORDER
+                // -----------------------------------------
+
+                const order =
+                  await response.json();
+
+
+                console.log(
+                  "Order placed:",
+                  order
+                );
+
+
+                // -----------------------------------------
+                // SUCCESS
+                // -----------------------------------------
+
+                showNotification(
+                  `Order placed successfully! Order ID: ${order.id}`,
+                  "success"
+                );
+
+
+                // -----------------------------------------
+                // GO TO ORDERS
+                // -----------------------------------------
+
+                window.location.href =
+                  "/orders";
+
+              } catch (error) {
+
+                console.error(
+                  "Error placing order:",
+                  error
+                );
+
+
+                showNotification(
+                  "Failed to place order.",
+                  "error"
+                );
+              }
+            }}
+          />
+        }
+      />
 
         {/* ORDERS */}
 
         <Route
           path="/orders"
           element={<Orders />}
+        />
+
+        <Route
+          path="/addresses"
+          element={
+            <Addresses
+              showNotification={showNotification}
+            />
+          }
         />
 
         {/* ADMIN DASHBOARD */}

@@ -4,7 +4,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 
-function Search() {
+function Search({ addToCart }) {
 
   const [products, setProducts] = useState([]);
 
@@ -144,6 +144,30 @@ function Search() {
 
 
   // =========================================================
+  // ADD TO CART
+  // =========================================================
+
+  function handleAddToCart(event, product) {
+
+    // Prevent the product card
+    // from opening Product Details
+    event.stopPropagation();
+
+    const stock =
+      Number(product.stock || 0);
+
+    // Do nothing if product is out of stock
+    if (stock === 0) {
+      return;
+    }
+
+    // Call the existing App.jsx function
+    addToCart(product.id);
+
+  }
+
+
+  // =========================================================
   // PAGE
   // =========================================================
 
@@ -163,11 +187,9 @@ function Search() {
         </p>
 
         <h1>
-
           {searchText
             ? `Results for "${searchText}"`
             : "All Products"}
-
         </h1>
 
       </div>
@@ -190,11 +212,26 @@ function Search() {
           currentProducts.map(
             (product) => {
 
-              // Dynamic image from backend
+              // =================================================
+              // PRODUCT IMAGE
+              // =================================================
+
               const imageUrl =
                 product.imageUrl
                   ? `http://localhost:8080${product.imageUrl}`
                   : null;
+
+
+              // =================================================
+              // STOCK
+              // =================================================
+
+              const stock =
+                Number(product.stock || 0);
+
+              const isOutOfStock =
+                stock === 0;
+
 
               return (
 
@@ -239,13 +276,22 @@ function Search() {
 
                   <div className="search-product-info">
 
+
+                    {/* CATEGORY */}
+
                     <p>
                       {product.category}
                     </p>
 
+
+                    {/* PRODUCT NAME */}
+
                     <h2>
                       {product.name}
                     </h2>
+
+
+                    {/* PRICE */}
 
                     <strong>
                       ₹
@@ -255,6 +301,53 @@ function Search() {
                         "en-IN"
                       )}
                     </strong>
+
+
+                    {/* =================================================
+                        STOCK STATUS
+                    ================================================= */}
+
+                    <p
+                      className={
+                        isOutOfStock
+                          ? "search-stock out-of-stock"
+                          : stock <= 5
+                          ? "search-stock low-stock"
+                          : "search-stock in-stock"
+                      }
+                    >
+
+                      {isOutOfStock
+                        ? "Out of Stock"
+                        : stock <= 5
+                        ? `Only ${stock} left`
+                        : "In Stock"}
+
+                    </p>
+
+
+                    {/* =================================================
+                        ADD TO CART
+                    ================================================= */}
+
+                    <button
+                      type="button"
+                      className="search-add-cart-button"
+                      disabled={isOutOfStock}
+                      onClick={(event) =>
+                        handleAddToCart(
+                          event,
+                          product
+                        )
+                      }
+                    >
+
+                      {isOutOfStock
+                        ? "Out of Stock"
+                        : "Add to Cart"}
+
+                    </button>
+
 
                   </div>
 
@@ -279,9 +372,12 @@ function Search() {
         <div className="admin-pagination">
 
 
-          {/* PREVIOUS */}
+          {/* =================================================
+              PREVIOUS
+          ================================================= */}
 
           <button
+            type="button"
             onClick={() =>
               goToPage(
                 currentPage - 1
@@ -295,7 +391,9 @@ function Search() {
           </button>
 
 
-          {/* PAGE NUMBERS */}
+          {/* =================================================
+              PAGE NUMBERS
+          ================================================= */}
 
           <div className="admin-pagination-pages">
 
@@ -311,6 +409,7 @@ function Search() {
                 return (
 
                   <button
+                    type="button"
                     key={pageNumber}
                     className={
                       currentPage ===
@@ -324,7 +423,9 @@ function Search() {
                       )
                     }
                   >
+
                     {pageNumber}
+
                   </button>
 
                 );
@@ -335,9 +436,12 @@ function Search() {
           </div>
 
 
-          {/* NEXT */}
+          {/* =================================================
+              NEXT
+          ================================================= */}
 
           <button
+            type="button"
             onClick={() =>
               goToPage(
                 currentPage + 1
@@ -350,6 +454,7 @@ function Search() {
           >
             Next →
           </button>
+
 
         </div>
 

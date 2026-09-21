@@ -56,9 +56,7 @@ function Cart({
 
         </div>
 
-
       ) : (
-
 
         /* =====================================================
            CART CONTENT
@@ -73,118 +71,175 @@ function Cart({
 
           <div className="cart-products">
 
-            {cart.map((product) => (
+            {cart.map((product) => {
 
-              <div
-                key={product.id}
-                className="cart-product"
-              >
-              
-              {/* PRODUCT IMAGE */}
+              const stock = Number(product.stock || 0);
 
-              <div className="cart-product-image">
+              const isOutOfStock = stock === 0;
 
-                {product.imageUrl ? (
-                  <img
-                    src={`http://localhost:8080${product.imageUrl}`}
-                    alt={product.name}
-                  />
-                ) : (
-                  <span>No Image</span>
-                )}
+              const reachedStockLimit =
+                product.quantity >= stock;
 
-              </div>
+              return (
 
+                <div
+                  key={product.id}
+                  className="cart-product"
+                >
 
-                {/* PRODUCT DETAILS */}
+                  {/* PRODUCT IMAGE */}
 
-                <div className="cart-product-details">
+                  <div className="cart-product-image">
 
-                  <span className="cart-category">
-                    {product.category}
-                  </span>
+                    {product.imageUrl ? (
 
-                  <h2>
-                    {product.name}
-                  </h2>
+                      <img
+                        src={`http://localhost:8080${product.imageUrl}`}
+                        alt={product.name}
+                      />
 
-                  <p className="cart-price">
-                    ₹{product.price.toLocaleString("en-IN")}
-                  </p>
-
-
-                  {/* QUANTITY */}
-
-                  <div className="quantity-section">
-
-                    <span>
-                      Quantity
-                    </span>
-
-                    <div className="quantity-controls">
-
-                      <button
-                        onClick={() =>
-                          decreaseQuantity(product.id)
-                        }
-                      >
-                        −
-                      </button>
-
+                    ) : (
 
                       <span>
-                        {product.quantity}
+                        No Image
                       </span>
 
+                    )}
 
-                      <button
-                        onClick={() =>
-                          increaseQuantity(product.id)
-                        }
-                      >
-                        +
-                      </button>
+                  </div>
+
+
+                  {/* PRODUCT DETAILS */}
+
+                  <div className="cart-product-details">
+
+                    <span className="cart-category">
+                      {product.category}
+                    </span>
+
+                    <h2>
+                      {product.name}
+                    </h2>
+
+                    <p className="cart-price">
+                      ₹{product.price.toLocaleString("en-IN")}
+                    </p>
+
+
+                    {/* STOCK */}
+
+                    <p
+                      className={
+                        isOutOfStock
+                          ? "cart-stock out-of-stock"
+                          : reachedStockLimit
+                          ? "cart-stock low-stock"
+                          : "cart-stock in-stock"
+                      }
+                    >
+                      {isOutOfStock
+                        ? "Out of Stock"
+                        : `Stock: ${stock}`}
+                    </p>
+
+
+                    {/* QUANTITY */}
+
+                    <div className="quantity-section">
+
+                      <span>
+                        Quantity
+                      </span>
+
+                      <div className="quantity-controls">
+
+                        {/* DECREASE */}
+
+                        <button
+                          onClick={() =>
+                            decreaseQuantity(product.id)
+                          }
+                          disabled={product.quantity <= 1}
+                        >
+                          −
+                        </button>
+
+
+                        {/* CURRENT QUANTITY */}
+
+                        <span>
+                          {product.quantity}
+                        </span>
+
+
+                        {/* INCREASE */}
+
+                        <button
+                          onClick={() =>
+                            increaseQuantity(product.id)
+                          }
+                          disabled={
+                            isOutOfStock ||
+                            reachedStockLimit
+                          }
+                        >
+                          +
+                        </button>
+
+                      </div>
 
                     </div>
+
+
+                    {/* STOCK LIMIT MESSAGE */}
+
+                    {!isOutOfStock &&
+                      reachedStockLimit && (
+
+                        <p className="cart-stock-limit">
+                          Maximum available quantity reached
+                        </p>
+
+                      )}
+
+                  </div>
+
+
+                  {/* PRODUCT SUBTOTAL */}
+
+                  <div className="cart-product-total">
+
+                    <span>
+                      Subtotal
+                    </span>
+
+                    <strong>
+                      ₹
+                      {(
+                        product.price *
+                        product.quantity
+                      ).toLocaleString("en-IN")}
+                    </strong>
+
+
+                    {/* REMOVE */}
+
+                    <button
+                      className="remove-button"
+                      onClick={() =>
+                        removeFromCart(product.id)
+                      }
+                    >
+                      Remove
+                    </button>
 
                   </div>
 
                 </div>
 
+              );
 
-                {/* PRODUCT SUBTOTAL */}
-
-                <div className="cart-product-total">
-
-                  <span>
-                    Subtotal
-                  </span>
-
-                  <strong>
-                    ₹
-                    {(
-                      product.price *
-                      product.quantity
-                    ).toLocaleString("en-IN")}
-                  </strong>
-
-
-                  {/* REMOVE */}
-
-                  <button
-                    className="remove-button"
-                    onClick={() =>
-                      removeFromCart(product.id)
-                    }
-                  >
-                    Remove
-                  </button>
-
-                </div>
-
-              </div>
-
-            ))}
+            })}
 
           </div>
 
@@ -209,7 +264,11 @@ function Cart({
               </span>
 
               <span>
-                {cart.length}
+                {cart.reduce(
+                  (sum, product) =>
+                    sum + product.quantity,
+                  0
+                )}
               </span>
 
             </div>
@@ -286,6 +345,5 @@ function Cart({
     </div>
   );
 }
-
 
 export default Cart;

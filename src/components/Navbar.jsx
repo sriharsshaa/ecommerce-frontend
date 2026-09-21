@@ -90,6 +90,15 @@ function Navbar({
     );
   }
 
+  // -----------------------------------------
+  // MY ADDRESSES
+  // -----------------------------------------
+
+  function handleAddresses() {
+    setShowDropdown(false);
+    navigate("/addresses");
+  }
+
   return (
     <nav className="navbar">
 
@@ -143,13 +152,19 @@ function Navbar({
               Users
             </Link>
 
-            {/* Feedbacks */}
+
+            {/* FEEDBACKS */}
 
             <Link to="/admin/feedback">
               Feedback
             </Link>
 
-            <Link to="/admin/reviews">Reviews</Link>
+
+            {/* REVIEWS */}
+
+            <Link to="/admin/reviews">
+              Reviews
+            </Link>
 
           </>
 
@@ -294,7 +309,6 @@ function Navbar({
             <Link to="/orders">
               Orders
             </Link>
-            
 
           </>
 
@@ -336,7 +350,20 @@ function Navbar({
                       ? "ADMIN"
                       : "Logged in"}
                   </span>
+
                 </div>
+
+
+                {/* MY ADDRESSES */}
+
+                {!isAdmin && (
+                  <button
+                    onClick={handleAddresses}
+                    className="dropdown-addresses"
+                  >
+                    📍 My Addresses
+                  </button>
+                )}
 
 
                 {/* LOGOUT */}
@@ -352,13 +379,17 @@ function Navbar({
             )}
 
           </div>
+
         ) : (
+
           <Link to="/login">
             Login
           </Link>
+
         )}
 
       </div>
+
     </nav>
   );
 }

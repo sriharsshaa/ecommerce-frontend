@@ -6,14 +6,14 @@ function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Stores the status selected by admin
+  // Stores the status temporarily selected by admin
   const [selectedStatuses, setSelectedStatuses] =
     useState({});
 
 
-  // =========================================
+  // =========================================================
   // FETCH ORDERS
-  // =========================================
+  // =========================================================
 
   async function fetchOrders() {
 
@@ -25,24 +25,50 @@ function AdminOrders() {
       const token =
         localStorage.getItem("token");
 
-      const response = await fetch(
-        "http://localhost:8080/api/admin/orders",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+
+      const response =
+        await fetch(
+          "http://localhost:8080/api/admin/orders",
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
+
+
+      const responseText =
+        await response.text();
+
+
+      console.log(
+        "Admin orders status:",
+        response.status
       );
 
+
+      console.log(
+        "Admin orders response:",
+        responseText
+      );
+
+
       if (!response.ok) {
+
         throw new Error(
+          responseText ||
           "Failed to fetch orders"
         );
       }
 
-      const data = await response.json();
+
+      const data =
+        JSON.parse(responseText);
+
 
       setOrders(data);
+
 
     } catch (error) {
 
@@ -51,42 +77,51 @@ function AdminOrders() {
         error
       );
 
+
       setError(
+        error.message ||
         "Unable to load orders."
       );
+
 
     } finally {
 
       setLoading(false);
-
     }
   }
 
 
   useEffect(() => {
+
     fetchOrders();
+
   }, []);
 
 
-  // =========================================
+  // =========================================================
   // STATUS DROPDOWN CHANGE
-  // =========================================
+  // =========================================================
 
   function handleStatusChange(
     orderId,
     newStatus
   ) {
 
-    setSelectedStatuses((previous) => ({
-      ...previous,
-      [orderId]: newStatus,
-    }));
+    setSelectedStatuses(
+      (previous) => ({
+
+        ...previous,
+
+        [orderId]: newStatus,
+
+      })
+    );
   }
 
 
-  // =========================================
+  // =========================================================
   // UPDATE ORDER STATUS
-  // =========================================
+  // =========================================================
 
   async function updateOrderStatus(
     orderId,
@@ -98,59 +133,135 @@ function AdminOrders() {
       const token =
         localStorage.getItem("token");
 
+
       const selectedStatus =
         selectedStatuses[orderId] ||
         currentStatus;
 
 
-      const response = await fetch(
-        `http://localhost:8080/api/admin/orders/${orderId}/status?status=${encodeURIComponent(
-          selectedStatus
-        )}`,
-        {
-          method: "PUT",
+      console.log(
+        "Updating order:",
+        orderId
+      );
 
-          headers: {
-            Authorization:
-              `Bearer ${token}`,
-          },
-        }
+
+      console.log(
+        "Current status:",
+        currentStatus
+      );
+
+
+      console.log(
+        "New status:",
+        selectedStatus
+      );
+
+
+      const response =
+        await fetch(
+          `http://localhost:8080/api/admin/orders/${orderId}/status?status=${encodeURIComponent(
+            selectedStatus
+          )}`,
+          {
+            method: "PUT",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "application/json",
+            },
+          }
+        );
+
+
+      const responseText =
+        await response.text();
+
+
+      console.log(
+        "Update status HTTP:",
+        response.status
+      );
+
+
+      console.log(
+        "Update status response:",
+        responseText
       );
 
 
       if (!response.ok) {
-        throw new Error(
-          "Failed to update order status"
-        );
+
+        let message =
+          "Unable to update order status.";
+
+
+        try {
+
+          const errorData =
+            JSON.parse(responseText);
+
+
+          message =
+            errorData.message ||
+            errorData.error ||
+            responseText ||
+            message;
+
+        } catch {
+
+          if (responseText) {
+
+            message =
+              responseText;
+          }
+        }
+
+
+        throw new Error(message);
       }
 
 
       const updatedOrder =
-        await response.json();
+        JSON.parse(responseText);
 
 
-      // Update only this order
-      setOrders((previousOrders) =>
-        previousOrders.map((order) =>
-          order.id === updatedOrder.id
-            ? updatedOrder
-            : order
-        )
+      // -----------------------------------------------------
+      // Update order in frontend
+      // -----------------------------------------------------
+
+      setOrders(
+        (previousOrders) =>
+          previousOrders.map(
+            (order) =>
+              order.id ===
+              updatedOrder.id
+                ? updatedOrder
+                : order
+          )
       );
 
 
-      // Remove temporary selected value
-      setSelectedStatuses((previous) => {
+      // -----------------------------------------------------
+      // Remove temporary dropdown value
+      // -----------------------------------------------------
 
-        const updated = {
-          ...previous,
-        };
+      setSelectedStatuses(
+        (previous) => {
 
-        delete updated[orderId];
+          const updated = {
+            ...previous,
+          };
 
-        return updated;
 
-      });
+          delete updated[orderId];
+
+
+          return updated;
+        }
+      );
 
 
       alert(
@@ -165,32 +276,33 @@ function AdminOrders() {
         error
       );
 
+
       alert(
+        error.message ||
         "Unable to update order status."
       );
-
     }
   }
 
 
-  // =========================================
+  // =========================================================
   // PAGE
-  // =========================================
+  // =========================================================
 
   return (
 
     <div className="admin-page">
 
 
-      {/* =========================================
+      {/* =====================================================
           PAGE HEADER
-      ========================================= */}
+      ===================================================== */}
 
       <div className="admin-page-header">
 
         <div>
 
-          <br></br>
+          <br />
 
           <p className="admin-page-label">
             ADMIN PANEL
@@ -210,9 +322,9 @@ function AdminOrders() {
       </div>
 
 
-      {/* =========================================
+      {/* =====================================================
           LOADING
-      ========================================= */}
+      ===================================================== */}
 
       {loading && (
 
@@ -223,22 +335,37 @@ function AdminOrders() {
       )}
 
 
-      {/* =========================================
+      {/* =====================================================
           ERROR
-      ========================================= */}
+      ===================================================== */}
 
-      {!loading && error && (
+      {!loading &&
+        error && (
 
-        <div className="admin-error">
-          {error}
-        </div>
+          <div className="admin-error">
 
-      )}
+            <strong>
+              Unable to load orders
+            </strong>
+
+            <p>
+              {error}
+            </p>
+
+            <button
+              onClick={fetchOrders}
+            >
+              Try Again
+            </button>
+
+          </div>
+
+        )}
 
 
-      {/* =========================================
+      {/* =====================================================
           EMPTY
-      ========================================= */}
+      ===================================================== */}
 
       {!loading &&
         !error &&
@@ -264,9 +391,9 @@ function AdminOrders() {
         )}
 
 
-      {/* =========================================
+      {/* =====================================================
           ORDERS TABLE
-      ========================================= */}
+      ===================================================== */}
 
       {!loading &&
         !error &&
@@ -324,9 +451,9 @@ function AdminOrders() {
                     >
 
 
-                      {/* =================================
+                      {/* =================================================
                           ORDER ID
-                      ================================= */}
+                      ================================================= */}
 
                       <td>
 
@@ -335,9 +462,9 @@ function AdminOrders() {
                       </td>
 
 
-                      {/* =================================
+                      {/* =================================================
                           CUSTOMER
-                      ================================= */}
+                      ================================================= */}
 
                       <td>
 
@@ -367,9 +494,9 @@ function AdminOrders() {
                       </td>
 
 
-                      {/* =================================
+                      {/* =================================================
                           AMOUNT
-                      ================================= */}
+                      ================================================= */}
 
                       <td>
 
@@ -378,7 +505,7 @@ function AdminOrders() {
                           ₹
                           {Number(
                             order.totalAmount ||
-                              0
+                            0
                           ).toLocaleString(
                             "en-IN"
                           )}
@@ -388,21 +515,21 @@ function AdminOrders() {
                       </td>
 
 
-                      {/* =================================
+                      {/* =================================================
                           STATUS
-                      ================================= */}
+                      ================================================= */}
 
                       <td>
 
                         <div className="admin-status-control">
 
 
+                          {/* =============================================
+                              CANCELLED
+                          ============================================= */}
+
                           {order.status ===
                           "CANCELLED" ? (
-
-                            // =================================
-                            // CANCELLED ORDER
-                            // =================================
 
                             <span className="admin-cancelled-status">
 
@@ -412,20 +539,17 @@ function AdminOrders() {
 
                           ) : (
 
-                            // =================================
-                            // NORMAL ORDER
-                            // =================================
+
+                            /* ===========================================
+                               NORMAL ORDER
+                            =========================================== */
 
                             <>
 
                               <select
                                 className="admin-status-select"
                                 value={
-                                  selectedStatuses[
-                                    order.id
-                                  ] ||
-                                  order.status ||
-                                  "PLACED"
+                                  selectedStatus
                                 }
                                 onChange={(event) =>
                                   handleStatusChange(
@@ -435,19 +559,28 @@ function AdminOrders() {
                                 }
                               >
 
-                                <option value="PLACED">
+                                <option
+                                  value="PLACED"
+                                  disabled
+                                >
                                   Placed
                                 </option>
 
-                                <option value="CONFIRMED">
+                                <option
+                                  value="CONFIRMED"
+                                >
                                   Confirmed
                                 </option>
 
-                                <option value="SHIPPED">
+                                <option
+                                  value="SHIPPED"
+                                >
                                   Shipped
                                 </option>
 
-                                <option value="DELIVERED">
+                                <option
+                                  value="DELIVERED"
+                                >
                                   Delivered
                                 </option>
 
@@ -459,11 +592,12 @@ function AdminOrders() {
                                 onClick={() =>
                                   updateOrderStatus(
                                     order.id,
-                                    selectedStatuses[
-                                      order.id
-                                    ] ||
-                                    order.status
+                                    selectedStatus
                                   )
+                                }
+                                disabled={
+                                  selectedStatus ===
+                                  order.status
                                 }
                               >
 
@@ -480,9 +614,9 @@ function AdminOrders() {
                       </td>
 
 
-                      {/* =================================
+                      {/* =================================================
                           DATE
-                      ================================= */}
+                      ================================================= */}
 
                       <td>
 
