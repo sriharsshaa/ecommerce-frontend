@@ -1,22 +1,31 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function ProductCard({ product, addToWishlist }) {
+function ProductCard({ product }) {
   const navigate = useNavigate();
 
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isWishlisted, setIsWishlisted] =
+    useState(false);
 
-  // Dynamic image URL from backend
+  // =====================================================
+  // PRODUCT IMAGE
+  // =====================================================
+
   const imageUrl = product.imageUrl
     ? `http://localhost:8080${product.imageUrl}`
     : null;
 
-  // Check whether this product is already in wishlist
+  // =====================================================
+  // CHECK WISHLIST
+  // =====================================================
+
   useEffect(() => {
     async function checkWishlist() {
-      const token = localStorage.getItem("token");
+      const token =
+        localStorage.getItem("token");
 
       if (!token) {
+        setIsWishlisted(false);
         return;
       }
 
@@ -38,7 +47,8 @@ function ProductCard({ product, addToWishlist }) {
 
         const exists = data.some(
           (item) =>
-            Number(item.productId) === Number(product.id)
+            Number(item.productId) ===
+            Number(product.id)
         );
 
         setIsWishlisted(exists);
@@ -53,18 +63,28 @@ function ProductCard({ product, addToWishlist }) {
     checkWishlist();
   }, [product.id]);
 
+  // =====================================================
+  // WISHLIST
+  // =====================================================
+
   async function handleWishlist(event) {
     event.stopPropagation();
 
-    const token = localStorage.getItem("token");
+    const token =
+      localStorage.getItem("token");
 
     if (!token) {
-      alert("Please login to add products to wishlist.");
+      alert(
+        "Please login to add products to wishlist."
+      );
       return;
     }
 
     try {
-      // If already in wishlist → remove
+      // -------------------------------------------------
+      // REMOVE
+      // -------------------------------------------------
+
       if (isWishlisted) {
         const response = await fetch(
           `http://localhost:8080/api/wishlist/${product.id}`,
@@ -86,7 +106,10 @@ function ProductCard({ product, addToWishlist }) {
         return;
       }
 
-      // If not in wishlist → add
+      // -------------------------------------------------
+      // ADD
+      // -------------------------------------------------
+
       const response = await fetch(
         `http://localhost:8080/api/wishlist/${product.id}`,
         {
@@ -104,7 +127,6 @@ function ProductCard({ product, addToWishlist }) {
       }
 
       setIsWishlisted(true);
-
     } catch (error) {
       console.error(
         "Wishlist error:",
@@ -113,13 +135,24 @@ function ProductCard({ product, addToWishlist }) {
     }
   }
 
+  // =====================================================
+  // PAGE
+  // =====================================================
+
   return (
     <div
       className="product-card"
       onClick={() =>
-        navigate(`/products/${product.id}`)
+        navigate(
+          `/products/${product.id}`
+        )
       }
     >
+
+      {/* =================================================
+          IMAGE
+      ================================================= */}
+
       <div className="product-card-image">
 
         {imageUrl ? (
@@ -131,28 +164,62 @@ function ProductCard({ product, addToWishlist }) {
           <span>No Image</span>
         )}
 
+        {/* =================================================
+            WISHLIST BUTTON
+        ================================================= */}
+
         <button
+          type="button"
           className={`wishlist-button ${
-            isWishlisted ? "wishlisted" : ""
+            isWishlisted
+              ? "wishlisted"
+              : ""
           }`}
           onClick={handleWishlist}
+          aria-label={
+            isWishlisted
+              ? "Remove from wishlist"
+              : "Add to wishlist"
+          }
+          title={
+            isWishlisted
+              ? "Remove from wishlist"
+              : "Add to wishlist"
+          }
         >
-          {isWishlisted ? "♥" : "♡"}
+          <span className="wishlist-heart">
+            {isWishlisted
+              ? "♥"
+              : "♡"}
+          </span>
         </button>
 
       </div>
 
+
+      {/* =================================================
+          PRODUCT INFORMATION
+      ================================================= */}
+
       <div className="product-card-info">
 
-        <p>{product.category}</p>
+        <p>
+          {product.category}
+        </p>
 
-        <h3>{product.name}</h3>
+        <h3>
+          {product.name}
+        </h3>
 
         <strong>
-          ₹{product.price.toLocaleString("en-IN")}
+          ₹
+          {Number(
+            product.price || 0
+          ).toLocaleString("en-IN")}
         </strong>
 
       </div>
+
     </div>
   );
 }
