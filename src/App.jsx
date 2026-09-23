@@ -36,6 +36,7 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminFeedback from "./pages/AdminFeedback";
 import AdminReviews from "./pages/AdminReviews";
 import Addresses from "./pages/Addresses";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -508,6 +509,8 @@ function App() {
       />
 
       <BrowserRouter>
+        <ScrollToTop />
+
         <AppContent
           cart={cart}
           cartCount={cartCount}

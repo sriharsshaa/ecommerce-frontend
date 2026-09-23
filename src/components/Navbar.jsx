@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 function Navbar({
   cartCount,
@@ -7,6 +7,7 @@ function Navbar({
   onLogout,
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
@@ -14,6 +15,24 @@ function Navbar({
 
   const userName = localStorage.getItem("userName");
   const token = localStorage.getItem("token");
+
+  // -----------------------------------------
+  // CLOSE MENUS WHEN ROUTE CHANGES
+  // -----------------------------------------
+
+  useEffect(() => {
+    setShowCategories(false);
+    setShowDropdown(false);
+  }, [location.pathname, location.search]);
+
+  // -----------------------------------------
+  // CLOSE ALL OPEN MENUS
+  // -----------------------------------------
+
+  function closeMenus() {
+    setShowCategories(false);
+    setShowDropdown(false);
+  }
 
   // -----------------------------------------
   // GET ROLE FROM JWT
@@ -49,6 +68,8 @@ function Navbar({
 
     const value = searchText.trim();
 
+    closeMenus();
+
     if (!value) {
       navigate("/search");
       return;
@@ -64,9 +85,9 @@ function Navbar({
   // -----------------------------------------
 
   function handleLogout() {
-    onLogout();
+    closeMenus();
 
-    setShowDropdown(false);
+    onLogout();
 
     navigate("/login");
   }
@@ -107,11 +128,13 @@ function Navbar({
       ===================================== */}
 
       <div className="navbar-logo">
-        <Link to="/">
+        <Link
+          to="/"
+          onClick={closeMenus}
+        >
           My E-Commerce
         </Link>
       </div>
-
 
       <div className="navbar-links">
 
@@ -124,47 +147,59 @@ function Navbar({
 
             {/* DASHBOARD */}
 
-            <Link to="/admin/dashboard">
+            <Link
+              to="/admin/dashboard"
+              onClick={closeMenus}
+            >
               Dashboard
             </Link>
 
-
             {/* PRODUCTS */}
 
-            <Link to="/admin/products">
+            <Link
+              to="/admin/products"
+              onClick={closeMenus}
+            >
               Products
             </Link>
 
-
             {/* ORDERS */}
 
-            <Link to="/admin/orders">
+            <Link
+              to="/admin/orders"
+              onClick={closeMenus}
+            >
               Orders
             </Link>
 
-
             {/* USERS */}
 
-            <Link to="/admin/users">
+            <Link
+              to="/admin/users"
+              onClick={closeMenus}
+            >
               Users
             </Link>
 
-
             {/* FEEDBACKS */}
 
-            <Link to="/admin/feedback">
+            <Link
+              to="/admin/feedback"
+              onClick={closeMenus}
+            >
               Feedback
             </Link>
 
-
             {/* REVIEWS */}
 
-            <Link to="/admin/reviews">
+            <Link
+              to="/admin/reviews"
+              onClick={closeMenus}
+            >
               Reviews
             </Link>
 
           </>
-
         ) : (
 
           /* ===================================
@@ -182,15 +217,16 @@ function Navbar({
               <button
                 type="button"
                 className="all-button"
-                onClick={() =>
+                onClick={() => {
                   setShowCategories(
-                    !showCategories
-                  )
-                }
+                    (previous) => !previous
+                  );
+
+                  setShowDropdown(false);
+                }}
               >
                 All ▾
               </button>
-
 
               {showCategories && (
 
@@ -207,7 +243,6 @@ function Navbar({
                     All Products
                   </button>
 
-
                   {/* ELECTRONICS */}
 
                   <button
@@ -218,7 +253,6 @@ function Navbar({
                   >
                     🔌 Electronics
                   </button>
-
 
                   {/* HOME & KITCHEN */}
 
@@ -233,7 +267,6 @@ function Navbar({
                     🏠 Home &amp; Kitchen
                   </button>
 
-
                   {/* LUGGAGE */}
 
                   <button
@@ -244,7 +277,6 @@ function Navbar({
                   >
                     🧳 Luggage
                   </button>
-
 
                   {/* MEN'S FASHION */}
 
@@ -259,7 +291,6 @@ function Navbar({
                     👔 Men&apos;s Fashion
                   </button>
 
-
                   {/* WOMEN'S FASHION */}
 
                   <button
@@ -273,7 +304,6 @@ function Navbar({
                     👗 Women&apos;s Fashion
                   </button>
 
-
                   {/* TOYS */}
 
                   <button
@@ -285,7 +315,6 @@ function Navbar({
                     🧸 Toys
                   </button>
 
-
                   {/* BOOKS */}
 
                   <button
@@ -296,7 +325,6 @@ function Navbar({
                   >
                     📚 Books
                   </button>
-
 
                   {/* HEALTH & HOUSEHOLD */}
 
@@ -316,7 +344,6 @@ function Navbar({
               )}
 
             </div>
-
 
             {/* =================================
                 SEARCH
@@ -344,37 +371,42 @@ function Navbar({
 
             </form>
 
-
             {/* =================================
                 CART
             ================================= */}
 
-            <Link to="/cart">
+            <Link
+              to="/cart"
+              onClick={closeMenus}
+            >
               Cart ({cartCount})
             </Link>
-
 
             {/* =================================
                 WISHLIST
             ================================= */}
 
-            <Link to="/wishlist">
+            <Link
+              to="/wishlist"
+              onClick={closeMenus}
+            >
               ♡ Wishlist
             </Link>
-
 
             {/* =================================
                 ORDERS
             ================================= */}
 
-            <Link to="/orders">
+            <Link
+              to="/orders"
+              onClick={closeMenus}
+            >
               Orders
             </Link>
 
           </>
 
         )}
-
 
         {/* =====================================
             PROFILE
@@ -387,15 +419,16 @@ function Navbar({
             <button
               type="button"
               className="profile-button"
-              onClick={() =>
+              onClick={() => {
                 setShowDropdown(
-                  !showDropdown
-                )
-              }
+                  (previous) => !previous
+                );
+
+                setShowCategories(false);
+              }}
             >
               👤 {userName || "User"} ▾
             </button>
-
 
             {showDropdown && (
 
@@ -415,7 +448,6 @@ function Navbar({
 
                 </div>
 
-
                 {/* MY ADDRESSES */}
 
                 {!isAdmin && (
@@ -427,7 +459,6 @@ function Navbar({
                     📍 My Addresses
                   </button>
                 )}
-
 
                 {/* LOGOUT */}
 
@@ -447,7 +478,10 @@ function Navbar({
 
         ) : (
 
-          <Link to="/login">
+          <Link
+            to="/login"
+            onClick={closeMenus}
+          >
             Login
           </Link>
 
