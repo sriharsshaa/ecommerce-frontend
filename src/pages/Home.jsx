@@ -5,6 +5,10 @@ function Home() {
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
 
+  // =====================================================
+  // FETCH PRODUCTS
+  // =====================================================
+
   useEffect(() => {
     async function fetchProducts() {
       try {
@@ -13,7 +17,9 @@ function Home() {
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch products");
+          throw new Error(
+            "Failed to fetch products"
+          );
         }
 
         const data = await response.json();
@@ -33,9 +39,9 @@ function Home() {
   return (
     <div className="home-page">
 
-      {/* =========================
+      {/* =====================================================
           HERO SECTION
-      ========================== */}
+      ===================================================== */}
 
       <section className="home-hero">
 
@@ -48,11 +54,13 @@ function Home() {
           <h1>
             Upgrade Your
             <br />
-            Everyday Tech
+            Everyday Life
           </h1>
 
           <p>
-            Discover the latest electronics at amazing prices.
+            Discover quality products across
+            electronics, fashion, home essentials
+            and more.
           </p>
 
           <button
@@ -69,9 +77,9 @@ function Home() {
       </section>
 
 
-      {/* =========================
+      {/* =====================================================
           CATEGORIES SECTION
-      ========================== */}
+      ===================================================== */}
 
       <section className="home-categories">
 
@@ -90,116 +98,162 @@ function Home() {
 
         <div className="category-grid">
 
-          {/* MOBILE */}
+          {/* ELECTRONICS */}
 
           <button
+            type="button"
             onClick={() =>
               navigate(
-                "/search?category=Mobile"
+                "/search?category=Electronics"
               )
             }
           >
             <span className="category-icon">
-              📱
+              🔌
             </span>
 
             <span>
-              Mobile
+              Electronics
             </span>
           </button>
 
 
-          {/* LAPTOP */}
+          {/* HOME & KITCHEN */}
 
           <button
+            type="button"
             onClick={() =>
               navigate(
-                "/search?category=Laptop"
+                "/search?category=Home%20%26%20Kitchen"
               )
             }
           >
             <span className="category-icon">
-              💻
+              🏠
             </span>
 
             <span>
-              Laptop
+              Home &amp; Kitchen
             </span>
           </button>
 
 
-          {/* AUDIO */}
+          {/* LUGGAGE */}
 
           <button
+            type="button"
             onClick={() =>
               navigate(
-                "/search?category=Audio"
+                "/search?category=Luggage"
               )
             }
           >
             <span className="category-icon">
-              🎧
+              🧳
             </span>
 
             <span>
-              Audio
+              Luggage
             </span>
           </button>
 
 
-          {/* WEARABLES */}
+          {/* MEN'S FASHION */}
 
           <button
+            type="button"
             onClick={() =>
               navigate(
-                "/search?category=Wearable"
+                "/search?category=Men%27s%20Fashion"
               )
             }
           >
             <span className="category-icon">
-              ⌚
+              👔
             </span>
 
             <span>
-              Wearables
+              Men&apos;s Fashion
             </span>
           </button>
 
 
-          {/* ACCESSORIES */}
+          {/* WOMEN'S FASHION */}
 
           <button
+            type="button"
             onClick={() =>
               navigate(
-                "/search?category=Accessories"
+                "/search?category=Women%27s%20Fashion"
               )
             }
           >
             <span className="category-icon">
-              🖱️
+              👗
             </span>
 
             <span>
-              Accessories
+              Women&apos;s Fashion
             </span>
           </button>
 
 
-          {/* MONITORS */}
+          {/* TOYS */}
 
           <button
+            type="button"
             onClick={() =>
               navigate(
-                "/search?category=Monitor"
+                "/search?category=Toys"
               )
             }
           >
             <span className="category-icon">
-              🖥️
+              🧸
             </span>
 
             <span>
-              Monitors
+              Toys
+            </span>
+          </button>
+
+
+          {/* BOOKS */}
+
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                "/search?category=Books"
+              )
+            }
+          >
+            <span className="category-icon">
+              📚
+            </span>
+
+            <span>
+              Books
+            </span>
+          </button>
+
+
+          {/* HEALTH & HOUSEHOLD */}
+
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                "/search?category=Health%20%26%20Household"
+              )
+            }
+          >
+            <span className="category-icon">
+              🧴
+            </span>
+
+            <span>
+              Health &amp; Household
             </span>
           </button>
 
@@ -208,9 +262,9 @@ function Home() {
       </section>
 
 
-      {/* =========================
+      {/* =====================================================
           FEATURED PRODUCTS
-      ========================== */}
+      ===================================================== */}
 
       <section className="home-featured">
 
@@ -231,14 +285,12 @@ function Home() {
 
           {products.map((product) => {
 
-            // Dynamic image from backend
             const imageUrl =
               product.imageUrl
                 ? `http://localhost:8080${product.imageUrl}`
                 : null;
 
             return (
-
               <div
                 key={product.id}
                 className="home-product-card"
@@ -254,18 +306,14 @@ function Home() {
                 <div className="home-product-image">
 
                   {imageUrl ? (
-
                     <img
                       src={imageUrl}
                       alt={product.name}
                     />
-
                   ) : (
-
                     <span>
                       No Image
                     </span>
-
                   )}
 
                 </div>
@@ -286,7 +334,7 @@ function Home() {
                   <strong>
                     ₹
                     {Number(
-                      product.price
+                      product.price || 0
                     ).toLocaleString(
                       "en-IN"
                     )}
@@ -295,7 +343,6 @@ function Home() {
                 </div>
 
               </div>
-
             );
           })}
 

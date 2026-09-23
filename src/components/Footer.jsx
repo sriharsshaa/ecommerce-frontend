@@ -2,15 +2,24 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 
 function Footer() {
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [feedback, setFeedback] = useState("");
+  const [showFeedback, setShowFeedback] =
+    useState(false);
 
-  const [notification, setNotification] = useState({
-    show: false,
-    type: "",
-    message: "",
-  });
+  const [rating, setRating] = useState(0);
+
+  const [feedback, setFeedback] =
+    useState("");
+
+  const [notification, setNotification] =
+    useState({
+      show: false,
+      type: "",
+      message: "",
+    });
+
+  // =========================================================
+  // SUBMIT FEEDBACK
+  // =========================================================
 
   async function handleSubmitFeedback(event) {
     event.preventDefault();
@@ -19,7 +28,8 @@ function Footer() {
       setNotification({
         show: true,
         type: "error",
-        message: "Please select a rating before submitting.",
+        message:
+          "Please select a rating before submitting.",
       });
       return;
     }
@@ -28,18 +38,21 @@ function Footer() {
       setNotification({
         show: true,
         type: "error",
-        message: "Please enter your feedback before submitting.",
+        message:
+          "Please enter your feedback before submitting.",
       });
       return;
     }
 
-    const token = localStorage.getItem("token");
+    const token =
+      localStorage.getItem("token");
 
     if (!token) {
       setNotification({
         show: true,
         type: "error",
-        message: "Please login to submit feedback.",
+        message:
+          "Please login to submit feedback.",
       });
       return;
     }
@@ -58,13 +71,16 @@ function Footer() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to submit feedback");
+        throw new Error(
+          "Failed to submit feedback"
+        );
       }
 
       setNotification({
         show: true,
         type: "success",
-        message: "Thank you! Your feedback has been submitted.",
+        message:
+          "Thank you! Your feedback has been submitted.",
       });
 
       setRating(0);
@@ -79,7 +95,6 @@ function Footer() {
           message: "",
         });
       }, 1800);
-
     } catch (error) {
       console.error(
         "Feedback submission error:",
@@ -101,19 +116,28 @@ function Footer() {
 
         <div className="footer-container">
 
-          {/* Brand */}
+          {/* =================================================
+              BRAND
+          ================================================= */}
+
           <div className="footer-brand">
-            <Link to="/" className="footer-logo">
+
+            <Link
+              to="/"
+              className="footer-logo"
+            >
               My E-Commerce
             </Link>
 
             <p>
               Smart shopping made simple.
-              Discover quality products and enjoy
-              a smooth shopping experience.
+              Discover quality products and
+              enjoy a smooth shopping
+              experience.
             </p>
 
             <div className="footer-socials">
+
               <a
                 href="https://www.instagram.com/"
                 target="_blank"
@@ -137,42 +161,75 @@ function Footer() {
               >
                 GitHub
               </a>
+
             </div>
+
           </div>
 
-          {/* Shop */}
+
+          {/* =================================================
+              SHOP
+          ================================================= */}
+
           <div className="footer-column">
+
             <h3>Shop</h3>
 
-            <Link to="/products">All Products</Link>
-            <Link to="/search?category=Mobile">
-              Mobile
-            </Link>
-            <Link to="/search?category=Laptop">
-              Laptops
-            </Link>
-            <Link to="/search?category=Audio">
-              Audio
-            </Link>
-            <Link to="/search?category=Wearable">
-              Wearables
+            <Link to="/products">
+              All Products
             </Link>
 
-            <Link to="/search?category=Accessories">
-              Accessories
+            <Link to="/search?category=Electronics">
+              Electronics
             </Link>
+
+            <Link to="/search?category=Home%20%26%20Kitchen">
+              Home &amp; Kitchen
+            </Link>
+
+            <Link to="/search?category=Luggage">
+              Luggage
+            </Link>
+
+            <Link to="/search?category=Men%27s%20Fashion">
+              Men&apos;s Fashion
+            </Link>
+
+            <Link to="/search?category=Women%27s%20Fashion">
+              Women&apos;s Fashion
+            </Link>
+
+            <Link to="/search?category=Toys">
+              Toys
+            </Link>
+
+            <Link to="/search?category=Books">
+              Books
+            </Link>
+
+            <Link to="/search?category=Health%20%26%20Household">
+              Health &amp; Household
+            </Link>
+
           </div>
 
-          {/* Customer Support */}
+
+          {/* =================================================
+              CUSTOMER SUPPORT
+          ================================================= */}
+
           <div className="footer-column">
-            <h3>Customer Support</h3>
+
+            <h3>
+              Customer Support
+            </h3>
 
             <Link to="/orders">
               Order Tracking
             </Link>
 
             <Link to="/cart">
-              Cart & Checkout
+              Cart &amp; Checkout
             </Link>
 
             <Link to="/help">
@@ -184,12 +241,18 @@ function Footer() {
             </Link>
 
             <Link to="/returns">
-              Returns & Refunds
+              Returns &amp; Refunds
             </Link>
+
           </div>
 
-          {/* About */}
+
+          {/* =================================================
+              ABOUT
+          ================================================= */}
+
           <div className="footer-column">
+
             <h3>About</h3>
 
             <Link to="/about">
@@ -207,26 +270,35 @@ function Footer() {
             <Link to="/accessibility">
               Accessibility
             </Link>
+
           </div>
 
         </div>
 
-        {/* Feedback */}
+
+        {/* ===================================================
+            FEEDBACK
+        =================================================== */}
+
         <div className="footer-feedback">
 
           <div>
+
             <h3>
-              We'd love to hear from you.
+              We&apos;d love to hear from you.
             </h3>
 
             <p>
               Have a suggestion or feedback?
-              Let us know how we can make your
-              shopping experience better.
+              Let us know how we can make
+              your shopping experience
+              better.
             </p>
+
           </div>
 
           <button
+            type="button"
             className="footer-feedback-button"
             onClick={() =>
               setShowFeedback(true)
@@ -237,7 +309,11 @@ function Footer() {
 
         </div>
 
-        {/* Bottom */}
+
+        {/* ===================================================
+            BOTTOM
+        =================================================== */}
+
         <div className="footer-bottom">
 
           <p>
@@ -255,7 +331,7 @@ function Footer() {
             </Link>
 
             <Link to="/privacy">
-              Privacy & Security
+              Privacy &amp; Security
             </Link>
 
           </div>
@@ -264,7 +340,11 @@ function Footer() {
 
       </footer>
 
-      {/* Feedback Overlay */}
+
+      {/* =====================================================
+          FEEDBACK OVERLAY
+      ===================================================== */}
+
       {showFeedback && (
         <div
           className="feedback-overlay"
@@ -273,13 +353,16 @@ function Footer() {
           }
         >
 
-          {/* Feedback Sidebar */}
+          {/* FEEDBACK SIDEBAR */}
+
           <div
             className="feedback-sidebar"
             onClick={(event) =>
               event.stopPropagation()
             }
           >
+
+            {/* HEADER */}
 
             <div className="feedback-sidebar-header">
 
@@ -296,26 +379,35 @@ function Footer() {
               </div>
 
               <button
+                type="button"
                 className="feedback-close"
                 onClick={() =>
                   setShowFeedback(false)
                 }
+                aria-label="Close feedback"
               >
                 ×
               </button>
 
             </div>
 
+
+            {/* DESCRIPTION */}
+
             <p className="feedback-description">
-              Your feedback helps us improve the
-              shopping experience.
+              Your feedback helps us improve
+              the shopping experience.
             </p>
+
+
+            {/* FORM */}
 
             <form
               onSubmit={handleSubmitFeedback}
             >
 
-              {/* Rating */}
+              {/* RATING */}
+
               <div className="feedback-rating-section">
 
                 <label>
@@ -356,7 +448,9 @@ function Footer() {
 
               </div>
 
-              {/* Feedback */}
+
+              {/* FEEDBACK TEXT */}
+
               <div className="feedback-input-section">
 
                 <label htmlFor="feedback">
@@ -377,6 +471,9 @@ function Footer() {
 
               </div>
 
+
+              {/* SUBMIT */}
+
               <button
                 type="submit"
                 className="feedback-submit-button"
@@ -391,7 +488,11 @@ function Footer() {
         </div>
       )}
 
-      {/* Feedback Notification */}
+
+      {/* =====================================================
+          FEEDBACK NOTIFICATION
+      ===================================================== */}
+
       {notification.show && (
         <div
           className={`feedback-notification ${notification.type}`}
@@ -408,7 +509,8 @@ function Footer() {
           <div>
 
             <strong>
-              {notification.type === "success"
+              {notification.type ===
+              "success"
                 ? "Thank you"
                 : "Notice"}
             </strong>

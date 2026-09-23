@@ -5,9 +5,7 @@ import {
 } from "react-router-dom";
 
 function Search({ addToCart }) {
-
   const [products, setProducts] = useState([]);
-
   const [currentPage, setCurrentPage] =
     useState(1);
 
@@ -15,7 +13,6 @@ function Search({ addToCart }) {
     useSearchParams();
 
   const navigate = useNavigate();
-
 
   // =========================================================
   // SEARCH PARAMETERS
@@ -27,17 +24,13 @@ function Search({ addToCart }) {
   const category =
     searchParams.get("category") || "All";
 
-
   // =========================================================
   // FETCH PRODUCTS
   // =========================================================
 
   useEffect(() => {
-
     async function fetchProducts() {
-
       try {
-
         const response = await fetch(
           "http://localhost:8080/api/products"
         );
@@ -52,21 +45,16 @@ function Search({ addToCart }) {
           await response.json();
 
         setProducts(data);
-
       } catch (error) {
-
         console.error(
           "Error fetching products:",
           error
         );
-
       }
     }
 
     fetchProducts();
-
   }, []);
-
 
   // =========================================================
   // FILTER PRODUCTS
@@ -74,13 +62,18 @@ function Search({ addToCart }) {
 
   const filteredProducts =
     products.filter((product) => {
+      const productName =
+        product.name?.toLowerCase() || "";
+
+      const productType =
+        product.productType?.toLowerCase() || "";
+
+      const searchValue =
+        searchText.toLowerCase();
 
       const matchesSearch =
-        product.name
-          .toLowerCase()
-          .includes(
-            searchText.toLowerCase()
-          );
+        productName.includes(searchValue) ||
+        productType.includes(searchValue);
 
       const matchesCategory =
         category === "All" ||
@@ -90,20 +83,15 @@ function Search({ addToCart }) {
         matchesSearch &&
         matchesCategory
       );
-
     });
-
 
   // =========================================================
   // RESET PAGE WHEN SEARCH CHANGES
   // =========================================================
 
   useEffect(() => {
-
     setCurrentPage(1);
-
   }, [searchText, category]);
-
 
   // =========================================================
   // PAGINATION
@@ -126,55 +114,46 @@ function Search({ addToCart }) {
       startIndex + productsPerPage
     );
 
-
   // =========================================================
   // CHANGE PAGE
   // =========================================================
 
   function goToPage(pageNumber) {
-
     setCurrentPage(pageNumber);
 
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
-
   }
-
 
   // =========================================================
   // ADD TO CART
   // =========================================================
 
-  function handleAddToCart(event, product) {
-
-    // Prevent the product card
-    // from opening Product Details
+  function handleAddToCart(
+    event,
+    product
+  ) {
+    // Prevent product details navigation
     event.stopPropagation();
 
     const stock =
       Number(product.stock || 0);
 
-    // Do nothing if product is out of stock
     if (stock === 0) {
       return;
     }
 
-    // Call the existing App.jsx function
     addToCart(product.id);
-
   }
-
 
   // =========================================================
   // PAGE
   // =========================================================
 
   return (
-
     <div className="search-page">
-
 
       {/* =====================================================
           PAGE HEADER
@@ -189,6 +168,8 @@ function Search({ addToCart }) {
         <h1>
           {searchText
             ? `Results for "${searchText}"`
+            : category !== "All"
+            ? category
             : "All Products"}
         </h1>
 
@@ -202,25 +183,21 @@ function Search({ addToCart }) {
       <div className="search-results">
 
         {filteredProducts.length === 0 ? (
-
           <p className="no-products">
             No products found.
           </p>
-
         ) : (
-
           currentProducts.map(
             (product) => {
 
               // =================================================
-              // PRODUCT IMAGE
+              // IMAGE
               // =================================================
 
               const imageUrl =
                 product.imageUrl
                   ? `http://localhost:8080${product.imageUrl}`
                   : null;
-
 
               // =================================================
               // STOCK
@@ -232,9 +209,7 @@ function Search({ addToCart }) {
               const isOutOfStock =
                 stock === 0;
 
-
               return (
-
                 <div
                   key={product.id}
                   className="search-product-card"
@@ -245,43 +220,46 @@ function Search({ addToCart }) {
                   }
                 >
 
-
-                  {/* =================================================
+                  {/* ===========================================
                       PRODUCT IMAGE
-                  ================================================= */}
+                  =========================================== */}
 
                   <div className="search-product-image">
 
                     {imageUrl ? (
-
                       <img
                         src={imageUrl}
                         alt={product.name}
                       />
-
                     ) : (
-
                       <span>
                         No Image
                       </span>
-
                     )}
 
                   </div>
 
 
-                  {/* =================================================
+                  {/* ===========================================
                       PRODUCT INFORMATION
-                  ================================================= */}
+                  =========================================== */}
 
                   <div className="search-product-info">
 
-
                     {/* CATEGORY */}
 
-                    <p>
+                    <p className="search-product-category">
                       {product.category}
                     </p>
+
+
+                    {/* PRODUCT TYPE */}
+
+                    {product.productType && (
+                      <p className="search-product-type">
+                        {product.productType}
+                      </p>
+                    )}
 
 
                     {/* PRODUCT NAME */}
@@ -296,16 +274,16 @@ function Search({ addToCart }) {
                     <strong>
                       ₹
                       {Number(
-                        product.price
+                        product.price || 0
                       ).toLocaleString(
                         "en-IN"
                       )}
                     </strong>
 
 
-                    {/* =================================================
-                        STOCK STATUS
-                    ================================================= */}
+                    {/* =======================================
+                        STOCK
+                    ======================================= */}
 
                     <p
                       className={
@@ -316,24 +294,24 @@ function Search({ addToCart }) {
                           : "search-stock in-stock"
                       }
                     >
-
                       {isOutOfStock
                         ? "Out of Stock"
                         : stock <= 5
                         ? `Only ${stock} left`
                         : "In Stock"}
-
                     </p>
 
 
-                    {/* =================================================
+                    {/* =======================================
                         ADD TO CART
-                    ================================================= */}
+                    ======================================= */}
 
                     <button
                       type="button"
                       className="search-add-cart-button"
-                      disabled={isOutOfStock}
+                      disabled={
+                        isOutOfStock
+                      }
                       onClick={(event) =>
                         handleAddToCart(
                           event,
@@ -341,23 +319,17 @@ function Search({ addToCart }) {
                         )
                       }
                     >
-
                       {isOutOfStock
                         ? "Out of Stock"
                         : "Add to Cart"}
-
                     </button>
-
 
                   </div>
 
                 </div>
-
               );
-
             }
           )
-
         )}
 
       </div>
@@ -368,13 +340,9 @@ function Search({ addToCart }) {
       ===================================================== */}
 
       {totalPages > 1 && (
-
         <div className="admin-pagination">
 
-
-          {/* =================================================
-              PREVIOUS
-          ================================================= */}
+          {/* PREVIOUS */}
 
           <button
             type="button"
@@ -391,9 +359,7 @@ function Search({ addToCart }) {
           </button>
 
 
-          {/* =================================================
-              PAGE NUMBERS
-          ================================================= */}
+          {/* PAGE NUMBERS */}
 
           <div className="admin-pagination-pages">
 
@@ -402,12 +368,10 @@ function Search({ addToCart }) {
                 length: totalPages,
               },
               (_, index) => {
-
                 const pageNumber =
                   index + 1;
 
                 return (
-
                   <button
                     type="button"
                     key={pageNumber}
@@ -423,22 +387,16 @@ function Search({ addToCart }) {
                       )
                     }
                   >
-
                     {pageNumber}
-
                   </button>
-
                 );
-
               }
             )}
 
           </div>
 
 
-          {/* =================================================
-              NEXT
-          ================================================= */}
+          {/* NEXT */}
 
           <button
             type="button"
@@ -455,13 +413,10 @@ function Search({ addToCart }) {
             Next →
           </button>
 
-
         </div>
-
       )}
 
     </div>
-
   );
 }
 

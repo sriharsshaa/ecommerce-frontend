@@ -275,6 +275,7 @@ function Wishlist({ addToCart, showNotification }) {
                   {/* REMOVE */}
 
                   <button
+                    type="button"
                     className="wishlist-remove-button"
                     onClick={(event) => {
 
@@ -285,8 +286,10 @@ function Wishlist({ addToCart, showNotification }) {
                       );
 
                     }}
+                    aria-label="Remove from wishlist"
+                    title="Remove from wishlist"
                   >
-                    Remove
+                    ♥
                   </button>
                 </div>
               </div>

@@ -107,11 +107,9 @@ function Navbar({
       ===================================== */}
 
       <div className="navbar-logo">
-
         <Link to="/">
           My E-Commerce
         </Link>
-
       </div>
 
 
@@ -122,7 +120,6 @@ function Navbar({
         ===================================== */}
 
         {isAdmin ? (
-
           <>
 
             {/* DASHBOARD */}
@@ -176,11 +173,14 @@ function Navbar({
 
           <>
 
-            {/* ALL DROPDOWN */}
+            {/* =================================
+                ALL CATEGORIES DROPDOWN
+            ================================= */}
 
             <div className="all-menu">
 
               <button
+                type="button"
                 className="all-button"
                 onClick={() =>
                   setShowCategories(
@@ -196,7 +196,10 @@ function Navbar({
 
                 <div className="all-dropdown">
 
+                  {/* ALL PRODUCTS */}
+
                   <button
+                    type="button"
                     onClick={() =>
                       handleCategory("All")
                     }
@@ -205,57 +208,107 @@ function Navbar({
                   </button>
 
 
+                  {/* ELECTRONICS */}
+
                   <button
+                    type="button"
                     onClick={() =>
-                      handleCategory("Mobile")
+                      handleCategory("Electronics")
                     }
                   >
-                    Mobile
+                    🔌 Electronics
                   </button>
 
 
+                  {/* HOME & KITCHEN */}
+
                   <button
+                    type="button"
                     onClick={() =>
-                      handleCategory("Laptop")
+                      handleCategory(
+                        "Home & Kitchen"
+                      )
                     }
                   >
-                    Laptop
+                    🏠 Home &amp; Kitchen
                   </button>
 
 
+                  {/* LUGGAGE */}
+
                   <button
+                    type="button"
                     onClick={() =>
-                      handleCategory("Audio")
+                      handleCategory("Luggage")
                     }
                   >
-                    Audio
+                    🧳 Luggage
                   </button>
 
 
+                  {/* MEN'S FASHION */}
+
                   <button
+                    type="button"
                     onClick={() =>
-                      handleCategory("Wearable")
+                      handleCategory(
+                        "Men's Fashion"
+                      )
                     }
                   >
-                    Wearables
+                    👔 Men&apos;s Fashion
                   </button>
 
 
+                  {/* WOMEN'S FASHION */}
+
                   <button
+                    type="button"
                     onClick={() =>
-                      handleCategory("Accessories")
+                      handleCategory(
+                        "Women's Fashion"
+                      )
                     }
                   >
-                    Accessories
+                    👗 Women&apos;s Fashion
                   </button>
 
 
+                  {/* TOYS */}
+
                   <button
+                    type="button"
                     onClick={() =>
-                      handleCategory("Monitor")
+                      handleCategory("Toys")
                     }
                   >
-                    Monitors
+                    🧸 Toys
+                  </button>
+
+
+                  {/* BOOKS */}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleCategory("Books")
+                    }
+                  >
+                    📚 Books
+                  </button>
+
+
+                  {/* HEALTH & HOUSEHOLD */}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleCategory(
+                        "Health & Household"
+                      )
+                    }
+                  >
+                    🧴 Health &amp; Household
                   </button>
 
                 </div>
@@ -265,7 +318,9 @@ function Navbar({
             </div>
 
 
-            {/* SEARCH */}
+            {/* =================================
+                SEARCH
+            ================================= */}
 
             <form
               className="navbar-search"
@@ -290,21 +345,27 @@ function Navbar({
             </form>
 
 
-            {/* CART */}
+            {/* =================================
+                CART
+            ================================= */}
 
             <Link to="/cart">
               Cart ({cartCount})
             </Link>
 
 
-            {/* WISHLIST */}
+            {/* =================================
+                WISHLIST
+            ================================= */}
 
             <Link to="/wishlist">
               ♡ Wishlist
             </Link>
 
 
-            {/* ORDERS */}
+            {/* =================================
+                ORDERS
+            ================================= */}
 
             <Link to="/orders">
               Orders
@@ -324,6 +385,7 @@ function Navbar({
           <div className="profile-menu">
 
             <button
+              type="button"
               className="profile-button"
               onClick={() =>
                 setShowDropdown(
@@ -358,6 +420,7 @@ function Navbar({
 
                 {!isAdmin && (
                   <button
+                    type="button"
                     onClick={handleAddresses}
                     className="dropdown-addresses"
                   >
@@ -369,6 +432,7 @@ function Navbar({
                 {/* LOGOUT */}
 
                 <button
+                  type="button"
                   onClick={handleLogout}
                   className="dropdown-logout"
                 >
@@ -376,6 +440,7 @@ function Navbar({
                 </button>
 
               </div>
+
             )}
 
           </div>

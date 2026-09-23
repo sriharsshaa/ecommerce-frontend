@@ -12,9 +12,7 @@ import {
 } from "recharts";
 
 function AdminDashboard({ showNotification }) {
-
   const navigate = useNavigate();
-
 
   // =========================================
   // DASHBOARD STATS
@@ -26,7 +24,6 @@ function AdminDashboard({ showNotification }) {
     totalOrders: 0,
     totalRevenue: 0,
   });
-
 
   // =========================================
   // ORDER STATUS COUNTS
@@ -41,7 +38,6 @@ function AdminDashboard({ showNotification }) {
       CANCELLED: 0,
     });
 
-
   // =========================================
   // REVENUE DATA
   // =========================================
@@ -49,14 +45,21 @@ function AdminDashboard({ showNotification }) {
   const [revenueData, setRevenueData] =
     useState([]);
 
-
   // =========================================
   // CATEGORY COUNTS
   // =========================================
 
   const [categoryCounts, setCategoryCounts] =
-    useState({});
-
+    useState({
+      Electronics: 0,
+      "Home & Kitchen": 0,
+      Luggage: 0,
+      "Men's Fashion": 0,
+      "Women's Fashion": 0,
+      Toys: 0,
+      Books: 0,
+      "Health & Household": 0,
+    });
 
   // =========================================
   // RECENT ORDERS
@@ -65,14 +68,12 @@ function AdminDashboard({ showNotification }) {
   const [recentOrders, setRecentOrders] =
     useState([]);
 
-
   // =========================================
   // LOADING
   // =========================================
 
   const [loading, setLoading] =
     useState(true);
-
 
   // =========================================
   // TOTAL REVIEWS
@@ -81,7 +82,6 @@ function AdminDashboard({ showNotification }) {
   const [totalReviews, setTotalReviews] =
     useState(0);
 
-
   // =========================================
   // TOTAL FEEDBACK
   // =========================================
@@ -89,23 +89,16 @@ function AdminDashboard({ showNotification }) {
   const [totalFeedback, setTotalFeedback] =
     useState(0);
 
-
   // =========================================
   // LOAD DASHBOARD DATA
   // =========================================
 
   useEffect(() => {
-
     fetchDashboard();
-
     fetchOrderStatusCounts();
-
     fetchRevenueData();
-
     fetchCategoryCounts();
-
     fetchRecentOrders();
-
 
     // =====================================
     // FETCH TOTAL REVIEWS
@@ -122,7 +115,6 @@ function AdminDashboard({ showNotification }) {
       }
     )
       .then((response) => {
-
         if (!response.ok) {
           throw new Error(
             "Failed to fetch reviews"
@@ -130,22 +122,20 @@ function AdminDashboard({ showNotification }) {
         }
 
         return response.json();
-
       })
       .then((data) => {
-
-        setTotalReviews(data.length);
-
+        setTotalReviews(
+          Array.isArray(data)
+            ? data.length
+            : 0
+        );
       })
       .catch((error) => {
-
         console.error(
           "Fetch reviews error:",
           error
         );
-
       });
-
 
     // =====================================
     // FETCH TOTAL FEEDBACK
@@ -162,7 +152,6 @@ function AdminDashboard({ showNotification }) {
       }
     )
       .then((response) => {
-
         if (!response.ok) {
           throw new Error(
             "Failed to fetch feedback"
@@ -170,50 +159,41 @@ function AdminDashboard({ showNotification }) {
         }
 
         return response.json();
-
       })
       .then((data) => {
-
-        setTotalFeedback(data.length);
-
+        setTotalFeedback(
+          Array.isArray(data)
+            ? data.length
+            : 0
+        );
       })
       .catch((error) => {
-
         console.error(
           "Fetch feedback error:",
           error
         );
-
       });
-
   }, []);
-
 
   // =========================================
   // FETCH DASHBOARD SUMMARY
   // =========================================
 
   async function fetchDashboard() {
-
     const token =
       localStorage.getItem("token");
 
-
     if (!token) {
-
       showNotification(
         "Please login as admin.",
         "error"
       );
 
       setLoading(false);
-
       return;
     }
 
-
     try {
-
       const response = await fetch(
         "http://localhost:8080/api/admin/dashboard",
         {
@@ -224,74 +204,52 @@ function AdminDashboard({ showNotification }) {
         }
       );
 
-
       if (response.status === 401) {
-
         throw new Error(
           "Please login again."
         );
-
       }
 
-
       if (response.status === 403) {
-
         throw new Error(
           "Access denied. Admin access required."
         );
-
       }
 
-
       if (!response.ok) {
-
         throw new Error(
           "Failed to fetch dashboard data."
         );
-
       }
-
 
       const data =
         await response.json();
 
-
       setStats(data);
-
     } catch (error) {
-
       console.error(
         "Admin Dashboard error:",
         error
       );
 
-
       showNotification(
         error.message,
         "error"
       );
-
     } finally {
-
       setLoading(false);
-
     }
-
   }
-
 
   // =========================================
   // FETCH ORDER STATUS COUNTS
   // =========================================
 
   async function fetchOrderStatusCounts() {
-
     const token =
       localStorage.getItem("token");
 
-
     try {
-
       const response = await fetch(
         "http://localhost:8080/api/admin/orders",
         {
@@ -302,77 +260,52 @@ function AdminDashboard({ showNotification }) {
         }
       );
 
-
       if (!response.ok) {
-
         throw new Error(
           "Failed to fetch orders"
         );
-
       }
-
 
       const orders =
         await response.json();
 
-
       const counts = {
-
         PLACED: 0,
-
         CONFIRMED: 0,
-
         SHIPPED: 0,
-
         DELIVERED: 0,
-
         CANCELLED: 0,
-
       };
 
+      if (Array.isArray(orders)) {
+        orders.forEach((order) => {
+          if (
+            counts[order.status] !==
+            undefined
+          ) {
+            counts[order.status]++;
+          }
+        });
+      }
 
-      orders.forEach((order) => {
-
-        if (
-          counts[order.status] !==
-          undefined
-        ) {
-
-          counts[order.status]++;
-
-        }
-
-      });
-
-
-      setOrderStatusCounts(
-        counts
-      );
-
+      setOrderStatusCounts(counts);
     } catch (error) {
-
       console.error(
         "Error fetching order status counts:",
         error
       );
-
     }
-
   }
-
 
   // =========================================
   // FETCH REVENUE DATA
   // =========================================
 
   async function fetchRevenueData() {
-
     const token =
       localStorage.getItem("token");
 
-
     try {
-
       const response = await fetch(
         "http://localhost:8080/api/admin/dashboard/revenue",
         {
@@ -383,104 +316,93 @@ function AdminDashboard({ showNotification }) {
         }
       );
 
-
       if (!response.ok) {
-
         throw new Error(
           "Failed to fetch revenue"
         );
-
       }
-
 
       const data =
         await response.json();
 
-
-      setRevenueData(data);
-
+      setRevenueData(
+        Array.isArray(data)
+          ? data
+          : []
+      );
     } catch (error) {
-
       console.error(
         "Error fetching revenue:",
         error
       );
-
     }
-
   }
-
 
   // =========================================
   // FETCH PRODUCT CATEGORY COUNTS
   // =========================================
 
   async function fetchCategoryCounts() {
-
     try {
-
       const response = await fetch(
         "http://localhost:8080/api/products"
       );
 
-
       if (!response.ok) {
-
         throw new Error(
           "Failed to fetch products"
         );
-
       }
-
 
       const products =
         await response.json();
 
+      // Keep all new categories visible
+      // even when the count is 0.
 
-      const counts = {};
+      const counts = {
+        Electronics: 0,
+        "Home & Kitchen": 0,
+        Luggage: 0,
+        "Men's Fashion": 0,
+        "Women's Fashion": 0,
+        Toys: 0,
+        Books: 0,
+        "Health & Household": 0,
+      };
 
+      if (Array.isArray(products)) {
+        products.forEach((product) => {
+          const category =
+            product.category;
 
-      products.forEach((product) => {
+          if (
+            counts[category] !==
+            undefined
+          ) {
+            counts[category]++;
+          }
+        });
+      }
 
-        const category =
-          product.category ||
-          "Other";
-
-
-        counts[category] =
-          (counts[category] || 0) + 1;
-
-      });
-
-
-      setCategoryCounts(
-        counts
-      );
-
+      setCategoryCounts(counts);
     } catch (error) {
-
       console.error(
         "Error fetching category counts:",
         error
       );
-
     }
-
   }
-
 
   // =========================================
   // FETCH RECENT ORDERS
   // =========================================
 
   async function fetchRecentOrders() {
-
     const token =
       localStorage.getItem("token");
 
-
     try {
-
       const response = await fetch(
         "http://localhost:8080/api/admin/orders",
         {
@@ -491,60 +413,48 @@ function AdminDashboard({ showNotification }) {
         }
       );
 
-
       if (!response.ok) {
-
         throw new Error(
           "Failed to fetch recent orders"
         );
-
       }
-
 
       const orders =
         await response.json();
 
-
       const latestOrders =
-        [...orders]
-          .sort(
-            (a, b) =>
-              new Date(
-                b.createdAt
-              ) -
-              new Date(
-                a.createdAt
+        Array.isArray(orders)
+          ? [...orders]
+              .sort(
+                (a, b) =>
+                  new Date(
+                    b.createdAt
+                  ) -
+                  new Date(
+                    a.createdAt
+                  )
               )
-          )
-          .slice(0, 5);
-
+              .slice(0, 5)
+          : [];
 
       setRecentOrders(
         latestOrders
       );
-
     } catch (error) {
-
       console.error(
         "Error fetching recent orders:",
         error
       );
-
     }
-
   }
-
 
   // =========================================
   // LOADING
   // =========================================
 
   if (loading) {
-
     return (
-
       <div className="admin-dashboard">
-
         <h1>
           Admin Dashboard
         </h1>
@@ -552,22 +462,54 @@ function AdminDashboard({ showNotification }) {
         <p>
           Loading dashboard...
         </p>
-
       </div>
-
     );
-
   }
 
+  // =========================================
+  // STATUS MAX VALUE
+  // =========================================
+
+  const maxStatusCount =
+    Math.max(
+      ...Object.values(
+        orderStatusCounts
+      ),
+      1
+    );
 
   // =========================================
-  // DASHBOARD
+  // CATEGORY MAX VALUE
   // =========================================
+
+  const maxCategoryCount =
+    Math.max(
+      ...Object.values(
+        categoryCounts
+      ),
+      1
+    );
+
+  // =========================================
+  // CATEGORY LIST
+  // =========================================
+
+  const categoryList = [
+    ["Electronics", "Electronics"],
+    ["Home & Kitchen", "Home & Kitchen"],
+    ["Luggage", "Luggage"],
+    ["Men's Fashion", "Men's Fashion"],
+    ["Women's Fashion", "Women's Fashion"],
+    ["Toys", "Toys"],
+    ["Books", "Books"],
+    [
+      "Health & Household",
+      "Health & Household",
+    ],
+  ];
 
   return (
-
     <div className="admin-dashboard">
-
 
       {/* =====================================
           DASHBOARD HEADER
@@ -597,10 +539,7 @@ function AdminDashboard({ showNotification }) {
 
       <div className="admin-stats-grid">
 
-
-        {/* ===================================
-            TOTAL USERS
-        =================================== */}
+        {/* TOTAL USERS */}
 
         <div
           className="admin-stat-card admin-stat-card-clickable"
@@ -608,13 +547,11 @@ function AdminDashboard({ showNotification }) {
             navigate("/admin/users")
           }
         >
-
           <span className="admin-stat-icon">
             👥
           </span>
 
           <div>
-
             <p>
               Total Users
             </p>
@@ -622,15 +559,11 @@ function AdminDashboard({ showNotification }) {
             <h2>
               {stats.totalUsers}
             </h2>
-
           </div>
-
         </div>
 
 
-        {/* ===================================
-            TOTAL PRODUCTS
-        =================================== */}
+        {/* TOTAL PRODUCTS */}
 
         <div
           className="admin-stat-card admin-stat-card-clickable"
@@ -638,13 +571,11 @@ function AdminDashboard({ showNotification }) {
             navigate("/admin/products")
           }
         >
-
           <span className="admin-stat-icon">
             📦
           </span>
 
           <div>
-
             <p>
               Total Products
             </p>
@@ -652,15 +583,11 @@ function AdminDashboard({ showNotification }) {
             <h2>
               {stats.totalProducts}
             </h2>
-
           </div>
-
         </div>
 
 
-        {/* ===================================
-            TOTAL ORDERS
-        =================================== */}
+        {/* TOTAL ORDERS */}
 
         <div
           className="admin-stat-card admin-stat-card-clickable"
@@ -668,13 +595,11 @@ function AdminDashboard({ showNotification }) {
             navigate("/admin/orders")
           }
         >
-
           <span className="admin-stat-icon">
             🛒
           </span>
 
           <div>
-
             <p>
               Total Orders
             </p>
@@ -682,15 +607,11 @@ function AdminDashboard({ showNotification }) {
             <h2>
               {stats.totalOrders}
             </h2>
-
           </div>
-
         </div>
 
 
-        {/* ===================================
-            TOTAL REVIEWS
-        =================================== */}
+        {/* TOTAL REVIEWS */}
 
         <div
           className="admin-stat-card admin-stat-card-clickable"
@@ -698,13 +619,11 @@ function AdminDashboard({ showNotification }) {
             navigate("/admin/reviews")
           }
         >
-
           <span className="admin-stat-icon">
             ★
           </span>
 
           <div>
-
             <p>
               Total Reviews
             </p>
@@ -712,15 +631,11 @@ function AdminDashboard({ showNotification }) {
             <h2>
               {totalReviews}
             </h2>
-
           </div>
-
         </div>
 
 
-        {/* ===================================
-            TOTAL FEEDBACK
-        =================================== */}
+        {/* TOTAL FEEDBACK */}
 
         <div
           className="admin-stat-card admin-stat-card-clickable"
@@ -728,13 +643,11 @@ function AdminDashboard({ showNotification }) {
             navigate("/admin/feedback")
           }
         >
-
           <span className="admin-stat-icon">
             💬
           </span>
 
           <div>
-
             <p>
               Total Feedback
             </p>
@@ -742,11 +655,8 @@ function AdminDashboard({ showNotification }) {
             <h2>
               {totalFeedback}
             </h2>
-
           </div>
-
         </div>
-
 
       </div>
 
@@ -773,7 +683,9 @@ function AdminDashboard({ showNotification }) {
               ₹
               {Number(
                 stats.totalRevenue
-              ).toLocaleString("en-IN")}
+              ).toLocaleString(
+                "en-IN"
+              )}
             </h2>
 
             <span className="admin-revenue-subtext">
@@ -792,7 +704,6 @@ function AdminDashboard({ showNotification }) {
       ===================================== */}
 
       <div className="admin-dashboard-charts-row">
-
 
         {/* ===================================
             ORDERS BY STATUS
@@ -821,52 +732,50 @@ function AdminDashboard({ showNotification }) {
               ["SHIPPED", "Shipped"],
               ["DELIVERED", "Delivered"],
               ["CANCELLED", "Cancelled"],
-            ].map(([key, label]) => (
+            ].map(
+              ([key, label]) => (
+                <div
+                  className="status-chart-row"
+                  key={key}
+                >
 
-              <div
-                className="status-chart-row"
-                key={key}
-              >
+                  <div className="status-chart-label">
 
-                <div className="status-chart-label">
+                    <span>
+                      {label}
+                    </span>
 
-                  <span>
-                    {label}
-                  </span>
+                    <strong>
+                      {
+                        orderStatusCounts[
+                          key
+                        ]
+                      }
+                    </strong>
 
-                  <strong>
-                    {orderStatusCounts[key]}
-                  </strong>
+                  </div>
+
+
+                  <div className="status-chart-bar">
+
+                    <div
+                      className={`status-chart-fill ${key.toLowerCase()}`}
+                      style={{
+                        width: `${
+                          (orderStatusCounts[
+                            key
+                          ] /
+                            maxStatusCount) *
+                          100
+                        }%`,
+                      }}
+                    />
+
+                  </div>
 
                 </div>
-
-
-                <div className="status-chart-bar">
-
-                  <div
-                    className={`status-chart-fill ${key.toLowerCase()}`}
-                    style={{
-                      width:
-                        orderStatusCounts[key] === 0
-                          ? "0%"
-                          : `${
-                              (
-                                orderStatusCounts[key] /
-                                Math.max(
-                                  ...Object.values(
-                                    orderStatusCounts
-                                  )
-                                )
-                              ) * 100
-                            }%`,
-                    }}
-                  />
-
-                </div>
-
-              </div>
-
-            ))}
+              )
+            )}
 
           </div>
 
@@ -886,7 +795,8 @@ function AdminDashboard({ showNotification }) {
             </h2>
 
             <p>
-              Products across categories.
+              Products across your store
+              categories.
             </p>
 
           </div>
@@ -894,72 +804,56 @@ function AdminDashboard({ showNotification }) {
 
           <div className="category-chart">
 
-            {Object.keys(categoryCounts).length === 0 ? (
+            {categoryList.map(
+              ([key, label]) => {
 
-              <p className="no-revenue-data">
-                No product category data available.
-              </p>
+                const count =
+                  categoryCounts[
+                    key
+                  ] || 0;
 
-            ) : (
+                return (
+                  <div
+                    className="category-chart-row"
+                    key={key}
+                  >
 
-              Object.entries(categoryCounts).map(
-                ([category, count]) => {
+                    <div className="category-chart-label">
 
-                  const maxCount =
-                    Math.max(
-                      ...Object.values(
-                        categoryCounts
-                      )
-                    );
+                      <span>
+                        {label}
+                      </span>
 
-                  return (
-
-                    <div
-                      className="category-chart-row"
-                      key={category}
-                    >
-
-                      <div className="category-chart-label">
-
-                        <span>
-                          {category}
-                        </span>
-
-                        <strong>
-                          {count}
-                        </strong>
-
-                      </div>
-
-
-                      <div className="category-chart-bar">
-
-                        <div
-                          className="category-chart-fill"
-                          style={{
-                            width: `${
-                              (count /
-                                maxCount) *
-                              100
-                            }%`,
-                          }}
-                        />
-
-                      </div>
+                      <strong>
+                        {count}
+                      </strong>
 
                     </div>
 
-                  );
 
-                }
-              )
+                    <div className="category-chart-bar">
 
+                      <div
+                        className="category-chart-fill"
+                        style={{
+                          width: `${
+                            (count /
+                              maxCategoryCount) *
+                            100
+                          }%`,
+                        }}
+                      />
+
+                    </div>
+
+                  </div>
+                );
+              }
             )}
 
           </div>
 
         </div>
-
 
       </div>
 
@@ -969,7 +863,6 @@ function AdminDashboard({ showNotification }) {
       ===================================== */}
 
       <div className="admin-dashboard-bottom-row">
-
 
         {/* ===================================
             REVENUE OVER TIME
@@ -994,13 +887,10 @@ function AdminDashboard({ showNotification }) {
           <div className="revenue-line-chart">
 
             {revenueData.length === 0 ? (
-
               <p className="no-revenue-data">
                 No revenue data available.
               </p>
-
             ) : (
-
               <ResponsiveContainer
                 width="100%"
                 height={320}
@@ -1042,7 +932,6 @@ function AdminDashboard({ showNotification }) {
                 </LineChart>
 
               </ResponsiveContainer>
-
             )}
 
           </div>
@@ -1073,16 +962,12 @@ function AdminDashboard({ showNotification }) {
           <div className="recent-orders-list">
 
             {recentOrders.length === 0 ? (
-
               <p className="no-revenue-data">
                 No recent orders available.
               </p>
-
             ) : (
-
               recentOrders.map(
                 (order) => (
-
                   <div
                     className="recent-order-row"
                     key={order.id}
@@ -1101,34 +986,42 @@ function AdminDashboard({ showNotification }) {
 
                     </div>
 
-                    <strong>
 
+                    <strong>
                       ₹
                       {Number(
-                        order.totalAmount
+                        order.totalAmount ||
+                          0
                       ).toLocaleString(
                         "en-IN"
                       )}
-
                     </strong>
 
+
                     <span
-                      className={`recent-order-status ${order.status.toLowerCase()}`}
+                      className={`recent-order-status ${
+                        (
+                          order.status ||
+                          ""
+                        ).toLowerCase()
+                      }`}
                     >
                       {order.status}
                     </span>
+
                   </div>
                 )
               )
             )}
 
           </div>
+
         </div>
+
       </div>
+
     </div>
-
   );
-
 }
 
 export default AdminDashboard;

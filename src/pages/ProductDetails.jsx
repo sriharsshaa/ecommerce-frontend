@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 function ProductDetails({ addToCart, showNotification }) {
   const { id } = useParams();
-
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
@@ -12,13 +11,13 @@ function ProductDetails({ addToCart, showNotification }) {
   // Related products
   const [relatedProducts, setRelatedProducts] = useState([]);
 
-  // Wishlist state
+  // Wishlist
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  // Quantity state
+  // Quantity
   const [quantity, setQuantity] = useState(1);
 
-  // Review state
+  // Reviews
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
 
@@ -50,10 +49,7 @@ function ProductDetails({ addToCart, showNotification }) {
 
         setProduct(selectedProduct);
 
-        // =================================================
-        // FIND RELATED PRODUCTS
-        // =================================================
-
+        // Find related products
         if (selectedProduct) {
           const related = data
             .filter(
@@ -68,10 +64,9 @@ function ProductDetails({ addToCart, showNotification }) {
           setRelatedProducts([]);
         }
 
-        // Reset quantity whenever product changes
         setQuantity(1);
       } catch (error) {
-        console.error(error);
+        console.error("Product fetch error:", error);
       } finally {
         setLoading(false);
       }
@@ -115,7 +110,6 @@ function ProductDetails({ addToCart, showNotification }) {
         );
 
         setIsWishlisted(exists);
-
       } catch (error) {
         console.error(
           "Wishlist check error:",
@@ -133,19 +127,11 @@ function ProductDetails({ addToCart, showNotification }) {
 
   useEffect(() => {
     async function fetchReviews() {
-      console.log(
-        "Fetching reviews for product:",
-        id
-      );
+      setReviewsLoading(true);
 
       try {
         const response = await fetch(
           `http://localhost:8080/api/reviews/${id}`
-        );
-
-        console.log(
-          "Review response:",
-          response
         );
 
         if (!response.ok) {
@@ -156,19 +142,12 @@ function ProductDetails({ addToCart, showNotification }) {
 
         const data = await response.json();
 
-        console.log(
-          "Reviews received:",
-          data
-        );
-
         setReviews(data);
-
       } catch (error) {
         console.error(
           "Reviews fetch error:",
           error
         );
-
       } finally {
         setReviewsLoading(false);
       }
@@ -178,7 +157,7 @@ function ProductDetails({ addToCart, showNotification }) {
   }, [id]);
 
   // =====================================================
-  // QUANTITY FUNCTIONS
+  // QUANTITY
   // =====================================================
 
   function decreaseQuantity() {
@@ -223,10 +202,7 @@ function ProductDetails({ addToCart, showNotification }) {
     }
 
     try {
-      // ==========================================
-      // REMOVE FROM WISHLIST
-      // ==========================================
-
+      // Remove
       if (isWishlisted) {
         const response = await fetch(
           `http://localhost:8080/api/wishlist/${product.id}`,
@@ -254,10 +230,7 @@ function ProductDetails({ addToCart, showNotification }) {
         return;
       }
 
-      // ==========================================
-      // ADD TO WISHLIST
-      // ==========================================
-
+      // Add
       const response = await fetch(
         `http://localhost:8080/api/wishlist/${product.id}`,
         {
@@ -280,7 +253,6 @@ function ProductDetails({ addToCart, showNotification }) {
         "Product added to wishlist ❤️",
         "success"
       );
-
     } catch (error) {
       console.error(
         "Wishlist error:",
@@ -340,13 +312,11 @@ function ProductDetails({ addToCart, showNotification }) {
 
       const newReview = await response.json();
 
-      // Add new review to existing list
       setReviews((currentReviews) => [
         ...currentReviews,
         newReview,
       ]);
 
-      // Reset form
       setSelectedRating(0);
       setReviewComment("");
       setShowReviewForm(false);
@@ -355,7 +325,6 @@ function ProductDetails({ addToCart, showNotification }) {
         "Review submitted successfully",
         "success"
       );
-
     } catch (error) {
       console.error(
         "Submit review error:",
@@ -366,14 +335,13 @@ function ProductDetails({ addToCart, showNotification }) {
         "Failed to submit review",
         "error"
       );
-
     } finally {
       setSubmittingReview(false);
     }
   }
 
   // =====================================================
-  // HANDLE ADD TO CART
+  // ADD TO CART
   // =====================================================
 
   function handleAddToCart() {
@@ -395,7 +363,6 @@ function ProductDetails({ addToCart, showNotification }) {
       return;
     }
 
-    // Pass both product ID and selected quantity
     addToCart(product.id, quantity);
   }
 
@@ -404,7 +371,6 @@ function ProductDetails({ addToCart, showNotification }) {
   // =====================================================
 
   function handleBuyNow() {
-
     if (product.stock <= 0) {
       showNotification(
         "This product is out of stock",
@@ -423,11 +389,646 @@ function ProductDetails({ addToCart, showNotification }) {
       return;
     }
 
-    // Add selected quantity to cart
     addToCart(product.id, quantity);
-
-    // Go directly to checkout
     navigate("/checkout");
+  }
+
+  // =====================================================
+  // SPECIFICATION HELPER
+  // =====================================================
+
+  function getSpecifications() {
+    if (!product) {
+      return [];
+    }
+
+    const specifications = [];
+
+    function addSpecification(label, value) {
+      if (
+        value !== null &&
+        value !== undefined &&
+        String(value).trim() !== ""
+      ) {
+        specifications.push({
+          label,
+          value,
+        });
+      }
+    }
+
+    // ===================================================
+    // COMMON
+    // ===================================================
+
+    addSpecification("Brand", product.brand);
+
+    // ===================================================
+    // ELECTRONICS
+    // ===================================================
+
+    if (product.category === "Electronics") {
+      addSpecification(
+        "Product Type",
+        product.productType
+      );
+
+      const productType = product.productType;
+
+      // -------------------------------
+      // Mobile / Tablet
+      // -------------------------------
+
+      if (
+        productType === "Mobile" ||
+        productType === "Tablet"
+      ) {
+        addSpecification(
+          "Model Name",
+          product.modelName
+        );
+
+        addSpecification(
+          "Color",
+          product.color
+        );
+
+        addSpecification(
+          "Storage",
+          product.storage
+        );
+
+        addSpecification(
+          "RAM",
+          product.ram
+        );
+
+        addSpecification(
+          "Screen Size",
+          product.screenSize
+        );
+
+        addSpecification(
+          "Operating System",
+          product.operatingSystem
+        );
+
+        addSpecification(
+          "Connectivity",
+          product.connectivity
+        );
+      }
+
+      // -------------------------------
+      // Laptop
+      // -------------------------------
+
+      else if (productType === "Laptop") {
+        addSpecification(
+          "Model Name",
+          product.modelName
+        );
+
+        addSpecification(
+          "Color",
+          product.color
+        );
+
+        addSpecification(
+          "Screen Size",
+          product.screenSize
+        );
+
+        addSpecification(
+          "Processor",
+          product.cpuModel
+        );
+
+        addSpecification(
+          "RAM",
+          product.ramMemoryInstalledSize ||
+            product.ram
+        );
+
+        addSpecification(
+          "Storage",
+          product.hardDiskSize ||
+            product.storage
+        );
+
+        addSpecification(
+          "Operating System",
+          product.operatingSystem
+        );
+
+        addSpecification(
+          "Connectivity",
+          product.connectivity
+        );
+      }
+
+      // -------------------------------
+      // Audio
+      // -------------------------------
+
+      else if (productType === "Audio") {
+        addSpecification(
+          "Model Name",
+          product.modelName
+        );
+
+        addSpecification(
+          "Color",
+          product.color
+        );
+
+        addSpecification(
+          "Form Factor",
+          product.formFactor
+        );
+
+        addSpecification(
+          "Ear Placement",
+          product.earPlacement
+        );
+
+        addSpecification(
+          "Noise Control",
+          product.noiseControl
+        );
+
+        addSpecification(
+          "Connectivity",
+          product.connectivity
+        );
+
+        addSpecification(
+          "Connection Type",
+          product.connectionType
+        );
+      }
+
+      // -------------------------------
+      // Wearable
+      // -------------------------------
+
+      else if (productType === "Wearable") {
+        addSpecification(
+          "Model Name",
+          product.modelName
+        );
+
+        addSpecification(
+          "Color",
+          product.color
+        );
+
+        addSpecification(
+          "Screen Size",
+          product.screenSize
+        );
+
+        addSpecification(
+          "Storage",
+          product.storage
+        );
+
+        addSpecification(
+          "Operating System",
+          product.operatingSystem
+        );
+
+        addSpecification(
+          "Connectivity",
+          product.connectivity
+        );
+      }
+
+      // -------------------------------
+      // Monitor
+      // -------------------------------
+
+      else if (productType === "Monitor") {
+        addSpecification(
+          "Model Name",
+          product.modelName
+        );
+
+        addSpecification(
+          "Color",
+          product.color
+        );
+
+        addSpecification(
+          "Screen Size",
+          product.screenSize
+        );
+
+        addSpecification(
+          "Resolution",
+          product.resolution
+        );
+
+        addSpecification(
+          "Refresh Rate",
+          product.refreshRate
+        );
+
+        addSpecification(
+          "Panel Type",
+          product.panelType
+        );
+
+        addSpecification(
+          "Connectivity",
+          product.connectivity
+        );
+      }
+
+      // -------------------------------
+      // Smart TV
+      // -------------------------------
+
+      else if (productType === "Smart TV") {
+        addSpecification(
+          "Model Name",
+          product.modelName
+        );
+
+        addSpecification(
+          "Color",
+          product.color
+        );
+
+        addSpecification(
+          "Screen Size",
+          product.screenSize
+        );
+
+        addSpecification(
+          "Resolution",
+          product.resolution
+        );
+
+        addSpecification(
+          "Refresh Rate",
+          product.refreshRate
+        );
+
+        addSpecification(
+          "Operating System",
+          product.operatingSystem
+        );
+
+        addSpecification(
+          "Connectivity",
+          product.connectivity
+        );
+      }
+
+      // -------------------------------
+      // Camera
+      // -------------------------------
+
+      else if (productType === "Camera") {
+        addSpecification(
+          "Model Name",
+          product.modelName
+        );
+
+        addSpecification(
+          "Color",
+          product.color
+        );
+
+        addSpecification(
+          "Resolution",
+          product.resolution
+        );
+
+        addSpecification(
+          "Storage",
+          product.storage
+        );
+
+        addSpecification(
+          "Connectivity",
+          product.connectivity
+        );
+      }
+
+      // -------------------------------
+      // Other Electronics
+      // -------------------------------
+
+      else {
+        addSpecification(
+          "Model Name",
+          product.modelName
+        );
+
+        addSpecification(
+          "Color",
+          product.color
+        );
+
+        addSpecification(
+          "Connectivity",
+          product.connectivity
+        );
+
+        addSpecification(
+          "Compatibility",
+          product.compatibility
+        );
+      }
+    }
+
+    // ===================================================
+    // HOME & KITCHEN
+    // ===================================================
+
+    else if (
+      product.category ===
+      "Home & Kitchen"
+    ) {
+      addSpecification(
+        "Product Type",
+        product.productType
+      );
+
+      addSpecification(
+        "Model Name",
+        product.modelName
+      );
+
+      addSpecification(
+        "Color",
+        product.color
+      );
+
+      addSpecification(
+        "Capacity",
+        product.capacity
+      );
+
+      addSpecification(
+        "Material",
+        product.material
+      );
+
+      addSpecification(
+        "Size",
+        product.size
+      );
+    }
+
+    // ===================================================
+    // LUGGAGE
+    // ===================================================
+
+    else if (
+      product.category === "Luggage"
+    ) {
+      addSpecification(
+        "Product Type",
+        product.productType
+      );
+
+      addSpecification(
+        "Model Name",
+        product.modelName
+      );
+
+      addSpecification(
+        "Color",
+        product.color
+      );
+
+      addSpecification(
+        "Size",
+        product.size
+      );
+
+      addSpecification(
+        "Capacity",
+        product.capacity
+      );
+
+      addSpecification(
+        "Material",
+        product.material
+      );
+    }
+
+    // ===================================================
+    // MEN'S FASHION
+    // ===================================================
+
+    else if (
+      product.category === "Men's Fashion"
+    ) {
+      addSpecification(
+        "Product Type",
+        product.productType
+      );
+
+      addSpecification(
+        "Color",
+        product.color
+      );
+
+      addSpecification(
+        "Size",
+        product.size
+      );
+
+      addSpecification(
+        "Material",
+        product.material
+      );
+
+      addSpecification(
+        "Fit",
+        product.fit
+      );
+
+      addSpecification(
+        "Pattern",
+        product.pattern
+      );
+
+      addSpecification(
+        "Occasion",
+        product.occasion
+      );
+    }
+
+    // ===================================================
+    // WOMEN'S FASHION
+    // ===================================================
+
+    else if (
+      product.category ===
+      "Women's Fashion"
+    ) {
+      addSpecification(
+        "Product Type",
+        product.productType
+      );
+
+      addSpecification(
+        "Color",
+        product.color
+      );
+
+      addSpecification(
+        "Size",
+        product.size
+      );
+
+      addSpecification(
+        "Material",
+        product.material
+      );
+
+      addSpecification(
+        "Fit",
+        product.fit
+      );
+
+      addSpecification(
+        "Pattern",
+        product.pattern
+      );
+
+      addSpecification(
+        "Occasion",
+        product.occasion
+      );
+    }
+
+    // ===================================================
+    // TOYS
+    // ===================================================
+
+    else if (
+      product.category === "Toys"
+    ) {
+      addSpecification(
+        "Product Type",
+        product.productType
+      );
+
+      addSpecification(
+        "Color",
+        product.color
+      );
+
+      addSpecification(
+        "Age Group",
+        product.ageGroup
+      );
+
+      addSpecification(
+        "Material",
+        product.material
+      );
+
+      addSpecification(
+        "Battery Required",
+        product.batteryRequired
+      );
+    }
+
+    // ===================================================
+    // BOOKS
+    // ===================================================
+
+    else if (
+      product.category === "Books"
+    ) {
+      addSpecification(
+        "Book Type",
+        product.productType
+      );
+
+      addSpecification(
+        "Author",
+        product.author
+      );
+
+      addSpecification(
+        "Publisher",
+        product.publisher
+      );
+
+      addSpecification(
+        "ISBN",
+        product.isbn
+      );
+
+      addSpecification(
+        "Language",
+        product.language
+      );
+
+      addSpecification(
+        "Edition",
+        product.edition
+      );
+
+      addSpecification(
+        "Format",
+        product.format
+      );
+
+      addSpecification(
+        "Pages",
+        product.pages
+      );
+    }
+
+    // ===================================================
+    // HEALTH & HOUSEHOLD
+    // ===================================================
+
+    else if (
+      product.category ===
+      "Health & Household"
+    ) {
+      addSpecification(
+        "Product Type",
+        product.productType
+      );
+
+      addSpecification(
+        "Color",
+        product.color
+      );
+
+      addSpecification(
+        "Material",
+        product.material
+      );
+
+      addSpecification(
+        "Capacity",
+        product.capacity
+      );
+
+      addSpecification(
+        "Pack Size",
+        product.packSize
+      );
+
+      addSpecification(
+        "Usage",
+        product.usage
+      );
+    }
+
+    return specifications;
   }
 
   // =====================================================
@@ -447,7 +1048,7 @@ function ProductDetails({ addToCart, showNotification }) {
   }
 
   // =====================================================
-  // DYNAMIC PRODUCT IMAGE
+  // IMAGE
   // =====================================================
 
   const imageUrl = product.imageUrl
@@ -455,7 +1056,7 @@ function ProductDetails({ addToCart, showNotification }) {
     : null;
 
   // =====================================================
-  // STOCK STATUS
+  // STOCK
   // =====================================================
 
   const stock = Number(product.stock || 0);
@@ -475,7 +1076,7 @@ function ProductDetails({ addToCart, showNotification }) {
   }
 
   // =====================================================
-  // REVIEW CALCULATIONS
+  // REVIEWS
   // =====================================================
 
   const averageRating =
@@ -489,6 +1090,13 @@ function ProductDetails({ addToCart, showNotification }) {
         ).toFixed(1)
       : "0.0";
 
+  // =====================================================
+  // SPECIFICATIONS
+  // =====================================================
+
+  const specifications =
+    getSpecifications();
+
   return (
     <div className="product-details-page">
 
@@ -498,7 +1106,7 @@ function ProductDetails({ addToCart, showNotification }) {
 
       <div className="product-details-container">
 
-        {/* Product Image */}
+        {/* PRODUCT IMAGE */}
 
         <div className="product-details-image">
 
@@ -513,7 +1121,7 @@ function ProductDetails({ addToCart, showNotification }) {
 
         </div>
 
-        {/* Product Information */}
+        {/* PRODUCT INFORMATION */}
 
         <div className="product-details-info">
 
@@ -530,9 +1138,7 @@ function ProductDetails({ addToCart, showNotification }) {
             ).toLocaleString("en-IN")}
           </p>
 
-          {/* =================================================
-              STOCK STATUS
-          ================================================= */}
+          {/* STOCK */}
 
           <p
             className={`product-stock-status ${stockClass}`}
@@ -540,9 +1146,7 @@ function ProductDetails({ addToCart, showNotification }) {
             {stockMessage}
           </p>
 
-          {/* =================================================
-              RATING SUMMARY
-          ================================================= */}
+          {/* RATING SUMMARY */}
 
           <div className="product-rating-summary">
 
@@ -576,9 +1180,7 @@ function ProductDetails({ addToCart, showNotification }) {
 
           </div>
 
-          {/* =================================================
-              QUANTITY SELECTOR
-          ================================================= */}
+          {/* QUANTITY */}
 
           {stock > 0 && (
             <div className="product-quantity-section">
@@ -616,9 +1218,7 @@ function ProductDetails({ addToCart, showNotification }) {
             </div>
           )}
 
-          {/* =================================================
-              CART + BUY NOW + WISHLIST
-          ================================================= */}
+          {/* ACTION BUTTONS */}
 
           <div className="product-details-actions">
 
@@ -667,386 +1267,45 @@ function ProductDetails({ addToCart, showNotification }) {
       </div>
 
       {/* =====================================================
-          PRODUCT INFORMATION / SPECIFICATIONS
+          PRODUCT INFORMATION
       ===================================================== */}
 
       <div className="product-specifications">
 
         <h2>Product Information</h2>
 
-        <div className="specifications-table">
+        {specifications.length > 0 ? (
+          <div className="specifications-table">
 
-          {/* =================================================
-              LAPTOP
-          ================================================= */}
+            {specifications.map(
+              (specification, index) => (
+                <div
+                  className="specification-row"
+                  key={`${specification.label}-${index}`}
+                >
+                  <span>
+                    {specification.label}
+                  </span>
 
-          {product.category === "Laptop" && (
-            <>
-
-              {product.brand && (
-                <div className="specification-row">
-                  <span>Brand</span>
                   <strong>
-                    {product.brand}
+                    {specification.value}
                   </strong>
                 </div>
-              )}
+              )
+            )}
 
-              {product.modelName && (
-                <div className="specification-row">
-                  <span>Model Name</span>
-                  <strong>
-                    {product.modelName}
-                  </strong>
-                </div>
-              )}
+          </div>
+        ) : (
+          <p>
+            No additional product
+            information available.
+          </p>
+        )}
 
-              {product.screenSize && (
-                <div className="specification-row">
-                  <span>Screen Size</span>
-                  <strong>
-                    {product.screenSize}
-                  </strong>
-                </div>
-              )}
-
-              {product.hardDiskSize && (
-                <div className="specification-row">
-                  <span>Hard Disk Size</span>
-                  <strong>
-                    {product.hardDiskSize}
-                  </strong>
-                </div>
-              )}
-
-              {product.cpuModel && (
-                <div className="specification-row">
-                  <span>CPU Model</span>
-                  <strong>
-                    {product.cpuModel}
-                  </strong>
-                </div>
-              )}
-
-              {product.ramMemoryInstalledSize && (
-                <div className="specification-row">
-                  <span>RAM</span>
-                  <strong>
-                    {product.ramMemoryInstalledSize}
-                  </strong>
-                </div>
-              )}
-
-            </>
-          )}
-
-          {/* =================================================
-              AUDIO
-          ================================================= */}
-
-          {product.category === "Audio" && (
-            <>
-
-              {product.brand && (
-                <div className="specification-row">
-                  <span>Brand</span>
-                  <strong>
-                    {product.brand}
-                  </strong>
-                </div>
-              )}
-
-              {product.color && (
-                <div className="specification-row">
-                  <span>Color</span>
-                  <strong>
-                    {product.color}
-                  </strong>
-                </div>
-              )}
-
-              {product.formFactor && (
-                <div className="specification-row">
-                  <span>Form Factor</span>
-                  <strong>
-                    {product.formFactor}
-                  </strong>
-                </div>
-              )}
-
-              {product.noiseControl && (
-                <div className="specification-row">
-                  <span>Noise Control</span>
-                  <strong>
-                    {product.noiseControl}
-                  </strong>
-                </div>
-              )}
-
-              {product.earPlacement && (
-                <div className="specification-row">
-                  <span>Ear Placement</span>
-                  <strong>
-                    {product.earPlacement}
-                  </strong>
-                </div>
-              )}
-
-            </>
-          )}
-
-          {/* =================================================
-              MOBILE
-          ================================================= */}
-
-          {product.category === "Mobile" && (
-            <>
-
-              {product.brand && (
-                <div className="specification-row">
-                  <span>Brand</span>
-                  <strong>
-                    {product.brand}
-                  </strong>
-                </div>
-              )}
-
-              {product.storage && (
-                <div className="specification-row">
-                  <span>Storage</span>
-                  <strong>
-                    {product.storage}
-                  </strong>
-                </div>
-              )}
-
-              {product.ram && (
-                <div className="specification-row">
-                  <span>RAM</span>
-                  <strong>
-                    {product.ram}
-                  </strong>
-                </div>
-              )}
-
-              {product.screenSize && (
-                <div className="specification-row">
-                  <span>Screen Size</span>
-                  <strong>
-                    {product.screenSize}
-                  </strong>
-                </div>
-              )}
-
-              {product.operatingSystem && (
-                <div className="specification-row">
-                  <span>Operating System</span>
-                  <strong>
-                    {product.operatingSystem}
-                  </strong>
-                </div>
-              )}
-
-            </>
-          )}
-
-          {/* =================================================
-              WEARABLE
-          ================================================= */}
-
-          {product.category === "Wearable" && (
-            <>
-
-              {product.brand && (
-                <div className="specification-row">
-                  <span>Brand</span>
-                  <strong>
-                    {product.brand}
-                  </strong>
-                </div>
-              )}
-
-              {product.modelName && (
-                <div className="specification-row">
-                  <span>Model Name</span>
-                  <strong>
-                    {product.modelName}
-                  </strong>
-                </div>
-              )}
-
-              {product.screenSize && (
-                <div className="specification-row">
-                  <span>Screen Size</span>
-                  <strong>
-                    {product.screenSize}
-                  </strong>
-                </div>
-              )}
-
-              {product.storage && (
-                <div className="specification-row">
-                  <span>Storage</span>
-                  <strong>
-                    {product.storage}
-                  </strong>
-                </div>
-              )}
-
-              {product.operatingSystem && (
-                <div className="specification-row">
-                  <span>Operating System</span>
-                  <strong>
-                    {product.operatingSystem}
-                  </strong>
-                </div>
-              )}
-
-              {product.color && (
-                <div className="specification-row">
-                  <span>Color</span>
-                  <strong>
-                    {product.color}
-                  </strong>
-                </div>
-              )}
-
-              {product.connectivity && (
-                <div className="specification-row">
-                  <span>Connectivity</span>
-                  <strong>
-                    {product.connectivity}
-                  </strong>
-                </div>
-              )}
-
-            </>
-          )}
-
-          {/* =================================================
-              ACCESSORIES
-          ================================================= */}
-
-          {product.category === "Accessories" && (
-            <>
-
-              {product.brand && (
-                <div className="specification-row">
-                  <span>Brand</span>
-                  <strong>
-                    {product.brand}
-                  </strong>
-                </div>
-              )}
-
-              {product.modelName && (
-                <div className="specification-row">
-                  <span>Model Name</span>
-                  <strong>
-                    {product.modelName}
-                  </strong>
-                </div>
-              )}
-
-              {product.color && (
-                <div className="specification-row">
-                  <span>Color</span>
-                  <strong>
-                    {product.color}
-                  </strong>
-                </div>
-              )}
-
-              {product.connectionType && (
-                <div className="specification-row">
-                  <span>Connection Type</span>
-                  <strong>
-                    {product.connectionType}
-                  </strong>
-                </div>
-              )}
-
-              {product.compatibility && (
-                <div className="specification-row">
-                  <span>Compatibility</span>
-                  <strong>
-                    {product.compatibility}
-                  </strong>
-                </div>
-              )}
-
-            </>
-          )}
-
-          {/* =================================================
-              MONITOR
-          ================================================= */}
-
-          {product.category === "Monitor" && (
-            <>
-
-              {product.brand && (
-                <div className="specification-row">
-                  <span>Brand</span>
-                  <strong>
-                    {product.brand}
-                  </strong>
-                </div>
-              )}
-
-              {product.modelName && (
-                <div className="specification-row">
-                  <span>Model Name</span>
-                  <strong>
-                    {product.modelName}
-                  </strong>
-                </div>
-              )}
-
-              {product.screenSize && (
-                <div className="specification-row">
-                  <span>Screen Size</span>
-                  <strong>
-                    {product.screenSize}
-                  </strong>
-                </div>
-              )}
-
-              {product.resolution && (
-                <div className="specification-row">
-                  <span>Resolution</span>
-                  <strong>
-                    {product.resolution}
-                  </strong>
-                </div>
-              )}
-
-              {product.refreshRate && (
-                <div className="specification-row">
-                  <span>Refresh Rate</span>
-                  <strong>
-                    {product.refreshRate}
-                  </strong>
-                </div>
-              )}
-
-              {product.panelType && (
-                <div className="specification-row">
-                  <span>Panel Type</span>
-                  <strong>
-                    {product.panelType}
-                  </strong>
-                </div>
-              )}
-
-            </>
-          )}
-
-        </div>
       </div>
 
       {/* =====================================================
-          ABOUT THIS PRODUCT
+          ABOUT PRODUCT
       ===================================================== */}
 
       {product.description && (
@@ -1124,9 +1383,7 @@ function ProductDetails({ addToCart, showNotification }) {
 
         </div>
 
-        {/* =================================================
-            REVIEW FORM
-        ================================================= */}
+        {/* REVIEW FORM */}
 
         {showReviewForm && (
           <div className="review-form">
@@ -1199,9 +1456,7 @@ function ProductDetails({ addToCart, showNotification }) {
           </div>
         )}
 
-        {/* =================================================
-            REVIEW LIST
-        ================================================= */}
+        {/* REVIEW LIST */}
 
         <div className="reviews-list">
 
@@ -1210,12 +1465,11 @@ function ProductDetails({ addToCart, showNotification }) {
           ) : reviews.length === 0 ? (
             <div className="no-reviews">
 
-              <p>
-                No reviews yet.
-              </p>
+              <p>No reviews yet.</p>
 
               <p>
-                Be the first to review this product!
+                Be the first to review this
+                product!
               </p>
 
             </div>
@@ -1236,7 +1490,9 @@ function ProductDetails({ addToCart, showNotification }) {
 
                     {"☆".repeat(
                       5 -
-                        Number(review.rating)
+                        Number(
+                          review.rating
+                        )
                     )}
 
                   </div>
@@ -1296,64 +1552,69 @@ function ProductDetails({ addToCart, showNotification }) {
 
           <div className="related-products-grid">
 
-            {relatedProducts.map((relatedProduct) => {
+            {relatedProducts.map(
+              (relatedProduct) => {
 
-              const relatedImageUrl =
-                relatedProduct.imageUrl
-                  ? `http://localhost:8080${relatedProduct.imageUrl}`
-                  : null;
+                const relatedImageUrl =
+                  relatedProduct.imageUrl
+                    ? `http://localhost:8080${relatedProduct.imageUrl}`
+                    : null;
 
-              return (
-                <div
-                  className="related-product-card"
-                  key={relatedProduct.id}
-                >
+                return (
+                  <div
+                    className="related-product-card"
+                    key={relatedProduct.id}
+                  >
 
-                  <div className="related-product-image">
+                    <div className="related-product-image">
 
-                    {relatedImageUrl ? (
-                      <img
-                        src={relatedImageUrl}
-                        alt={relatedProduct.name}
-                      />
-                    ) : (
-                      <span>No Image</span>
-                    )}
+                      {relatedImageUrl ? (
+                        <img
+                          src={relatedImageUrl}
+                          alt={relatedProduct.name}
+                        />
+                      ) : (
+                        <span>No Image</span>
+                      )}
+
+                    </div>
+
+                    <div className="related-product-info">
+
+                      <p className="related-product-category">
+                        {relatedProduct.category}
+                      </p>
+
+                      <h3>
+                        {relatedProduct.name}
+                      </h3>
+
+                      <p className="related-product-price">
+                        ₹
+                        {Number(
+                          relatedProduct.price
+                        ).toLocaleString(
+                          "en-IN"
+                        )}
+                      </p>
+
+                      <button
+                        className="related-product-button"
+                        onClick={() =>
+                          navigate(
+                            `/products/${relatedProduct.id}`
+                          )
+                        }
+                      >
+                        View Product
+                      </button>
+
+                    </div>
 
                   </div>
-
-                  <div className="related-product-info">
-
-                    <p className="related-product-category">
-                      {relatedProduct.category}
-                    </p>
-
-                    <h3>
-                      {relatedProduct.name}
-                    </h3>
-
-                    <p className="related-product-price">
-                      ₹
-                      {Number(
-                        relatedProduct.price
-                      ).toLocaleString("en-IN")}
-                    </p>
-
-                    <button
-                      className="related-product-button"
-                      onClick={() =>
-                        window.location.href =
-                          `/products/${relatedProduct.id}`
-                      }
-                    >
-                      View Product
-                    </button>
-
-                  </div>
-
-                </div>
-              );
-            })}
+                );
+              }
+            )}
 
           </div>
 
